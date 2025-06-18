@@ -1,0 +1,50 @@
+---
+title: "HW 1"
+author: "Farooq Mahmud"
+format: 
+  html:
+    self-contained: true
+    echo: true
+    message: false
+    warning: false
+    error: true # IMPORTANT NOTE - this makes the file render even if there is an error. it is imperative that you check your .html document *before submission* to make sure that it has all results in it.
+editor: source
+---
+
+# Problem 1a
+
+## Import data
+```{r}
+csv_path <- file.path(getwd(), "KwhConsumptionBlower.csv")
+data <- read.csv(csv_path)
+ts_data <- data$Consumption
+```
+
+# Problem 1b
+
+## Time-series plot
+
+```{r}
+plot(ts_data, type = "l", xlab = "Reading Index", ylab = "Consumption", main = "Energy Consumption")
+grid()
+```
+
+## ACF plot
+
+```{r}
+acf(ts_data, main = "ACF Plot")
+grid()
+```
+
+# Problem 2a
+
+```{r}
+flips <- rbinom(1000, 1, 0.5)
+e_t <- ifelse(flips == 0, -1, 1)
+Y_t <- cumsum(e_t)
+time <- 1:length(Y_t)
+plot(time, Y_t, type = "l", xlab = "Time (t)", main = "Random Walk Plot")
+grid()
+```
+
+The random walk plot clearly shows trends. It starts with a downward trend for about the first 175 samples. This is followed by an upward trend for about the next 400 samples followed by another downward trend.
