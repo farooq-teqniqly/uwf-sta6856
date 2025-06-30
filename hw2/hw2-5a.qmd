@@ -1,0 +1,16 @@
+---
+title: "HW 2"
+author: "Farooq Mahmud"
+format: pdf
+editor: source
+---
+
+# Problem 5b
+
+```{r}
+set.seed(42)
+theta <- c(0.8, 0.6, 0.4)
+
+ma3_series <- arima.sim(n = 150, model = list(ma = theta))
+acf(ma3_series)
+```
