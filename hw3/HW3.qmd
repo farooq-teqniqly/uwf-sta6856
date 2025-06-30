@@ -1,0 +1,13 @@
+---
+title: "HW3"
+author: "Farooq Mahmud"
+format: pdf
+editor: source
+---
+
+## Problem 5a
+
+
+```{r}
+1 + 1
+```
