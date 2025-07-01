@@ -1,0 +1,64 @@
+---
+title: "HW3"
+author: "Farooq Mahmud"
+format: pdf
+editor: source
+---
+
+## Problem 5a
+
+
+```{r}
+phi <- c(0.7, -0.4)
+
+theoretical_acf <- ARMAacf(ar = phi,
+                           ma = numeric(0),
+                           lag.max = 20)
+plot(
+  theoretical_acf,
+  type = "h",
+  main = "Theoretical ACF",
+  xlab = "Lag",
+  ylab = "ACF"
+)
+abline(h = 0)
+```
+## Problem 5b
+```{r}
+set.seed(123)
+
+phi <- c(0.7, -0.4)
+n <- 72
+ar2_series <- arima.sim(n = n, model = list(ar = phi))
+
+acf(ar2_series, main = "Sample ACF")
+
+```
+
+The sample ACF closely resembles the theoretical ACF in shape. The overall pattern of slow decay after significant values in lags 1 and 2 shows up in both plots which is congruent with this being an AR(2) time series.
+
+## Problem 5c
+```{r}
+theoretical_pacf <- ARMAacf(
+  ar = phi,
+  ma = numeric(0),
+  lag.max = 20,
+  pacf = TRUE
+)
+
+plot(
+  theoretical_pacf,
+  type = "h",
+  main = "Theoretical PACF",
+  xlab = "Lag",
+  ylab = "PACF"
+)
+abline(h = 0)
+```
+
+## Problem 5d
+```{r}
+pacf(ar2_series, main = "Sample PACF")
+```
+The sample PACF matches well with the theoretical ACF. There are significant spikes at lags 1 and 2 and insignificant values after. This is congruent with this being an AR(2) time series.
+
