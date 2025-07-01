@@ -9,5 +9,22 @@ editor: source
 
 
 ```{r}
-1 + 1
+phi <- c(0.7, -0.4)
+
+theoretical_acf <- ARMAacf(ar = phi, ma = numeric(0), lag.max = 20)
+plot(theoretical_acf, type = "h", main = "Theoretical ACF", xlab = "lag", ylab = "ACF")
+abline(h = 0)
 ```
+## Problem 5b
+```{r}
+set.seed(123)
+
+phi <- c(0.7, -0.4)
+n <- 72
+ar2_series <- arima.sim(n = n, model = list(ar = phi))
+
+acf(ar2_series, main = "Sample ACF")
+
+```
+
+The sample ACF closely resembles the theoretical ACF in shape and sign. The overall pattern of slow decay shows up in both plots.
