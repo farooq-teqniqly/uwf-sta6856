@@ -1,0 +1,46 @@
+---
+title: "Midterm"
+author: "Farooq Mahmud"
+format: pdf
+editor: source
+---
+
+## Problem 7a
+
+
+```{r}
+phi <- c(0.4)
+theta <- c(0.6)
+n <- 70
+
+theoretical_acf <- ARMAacf(ar = phi,
+                           ma = theta,
+                           lag.max = 20)
+plot(
+  theoretical_acf,
+  type = "h",
+  main = "Theoretical ACF",
+  xlab = "Lag",
+  ylab = "ACF"
+)
+abline(h = 0)
+```
+## Problem 7b
+```{r}
+set.seed(123)
+
+series <- arima.sim(
+  n = n, 
+  model = list(ar = phi, ma = theta))
+
+acf(series, main = "Sample ACF")
+
+```
+
+The sample ACF closely resembles the theoretical ACF in shape. The overall pattern of slow decay after significant values in lags 1 and 2 shows up in both plots.
+
+## Problem 7c
+```{r}
+library(TSA)
+eacf(series)
+```
