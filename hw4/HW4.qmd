@@ -1,0 +1,55 @@
+---
+title: "HW4"
+author: "Farooq Mahmud"
+format: pdf
+editor: source
+---
+
+## Problem 3a
+
+
+```{r}
+library(TSA)
+data(electricity)
+acf(electricity)
+```
+The data does not appear to be stationary based on the ACF plot because:
+
+- Significant ACF at all lags.
+- Seasonal pattern with peaks every 12 lags.
+- Slow, if any decay in ACF.
+
+## Problem 3b
+```{r}
+log_electricity <- log(electricity)
+diff_log_electricity <- diff(log_electricity)
+acf(diff_log_electricity)
+```
+
+Yes, seasonality is visible. Since the electricity data is monthly and there are significant ACF's at every 12 lags, the seasonal component is 12 months.
+
+## Problem 3c
+```{r}
+diff_seasonal <- diff(diff_log_electricity, lag = 12)
+plot(diff_seasonal)
+```
+Yes, the plot looks stationary now.
+
+## Problem 3d
+```{r}
+acf(diff_seasonal)
+```
+- $p=0$ because no gradual decay appears in ACF.
+- $d=1$ because we needed first differencing to remove trend/non-stationarity.
+- $q=1$ because of a sharp drop in ACF after lag 1.
+- $P=0$ because no gradual decay or spike pattern.
+- $D=1$ because seasonal differencing of order 1 is needed.
+- $Q=1$ because the large spike at lag 12.
+- Seasonal period of 12
+
+Therefore a model to consider would be:
+
+$ARIMA(0,1,1) X (0,1,1)_{12}$
+
+
+
