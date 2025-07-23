@@ -1,0 +1,54 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{cite}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{ulem}
+
+\lstset{
+    language=R,                  % Specify R as the language
+    basicstyle=\ttfamily,        % Use monospaced font for code
+    keywordstyle=\color{blue},   % Color for keywords
+    commentstyle=\color{gray},   % Color for comments
+    stringstyle=\color{red},     % Color for strings
+    numbers=left,                % Line numbers on the left
+    numberstyle=\tiny\color{gray}, % Style for line numbers
+    stepnumber=1,                % Number every line
+    frame=single,                % Frame around the code
+    breaklines=true              % Enable line breaking
+}
+
+\graphicspath{{finalproject/images/}}
+
+\title{Daily Trip Duration Analysis of Uber Rides in NYC Using Time Series Methods }
+\author{
+    Farooq Mahmud
+}
+
+\date{August 7, 2025}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+Urban mobility has undergone a transformative shift with the proliferation of ride-hailing services such as Uber. In dense metropolitan areas such as New York City, these services generate massive amounts of data that can reveal important patterns in travel behavior. This project proposes a time series analysis of average daily Uber trip durations in New York City throughout the year 2024, using publicly available high-volume for-hire vehicle (FHV) trip data.
+
+The data set is sourced from the NYC Taxi and Limousine Commission (TLC) and contains more than 150 million records for 2024 alone. For the purpose of this analysis, a subset of the data has been prepared using PySpark to compute the average duration of Uber trips per day, resulting in 365 data points. The data set is accessible through the NYC TLC portal\cite{nyctlc2024}.
+
+The main objective of this project is to explore the temporal behavior of Uber trip durations and apply time series modeling to understand and forecast future values. Specific goals include examining stationarity, identifying appropriate models through diagnostics, and evaluating forecasting accuracy. A review of prior research indicates that ride-hailing data has been used extensively for congestion, demand prediction, and fleet optimization, but less so for temporal duration modeling at a daily resolution.
+
+Two references guiding this work are (1) Tandon et al. (2024), which evaluates the effect of congestion pricing on ride-hailing behavior in New York City\cite{tandon2024congestion} and (2) Ma et al. (2024), which explores congestion-aware scheduling of electric ride-hailing fleets\cite{ma2024congestion}.
+
+This study contributes by applying time series methods to a large-scale, real-world dataset to understand trends and variability in urban travel times.
+
+\section {Preliminary Analysis}
+\section {Secondary Analysis}
+\section {Discussion and Conclusion}
+
+\bibliographystyle{plain}
+\bibliography{finalproject/docs/refs}
+
+\end{document}
