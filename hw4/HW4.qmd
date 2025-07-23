@@ -1,0 +1,108 @@
+---
+title: "HW4"
+author: "Farooq Mahmud"
+format: pdf
+editor: source
+---
+
+## Problem 3a
+
+
+```{r}
+library(TSA)
+data(electricity)
+acf(electricity)
+```
+The data does not appear to be stationary based on the ACF plot because:
+
+- Significant ACF at all lags.
+- Seasonal pattern with peaks every 12 lags.
+- Slow, if any decay in ACF.
+
+## Problem 3b
+```{r}
+log_electricity <- log(electricity)
+diff_log_electricity <- diff(log_electricity)
+acf(diff_log_electricity)
+```
+
+Yes, seasonality is visible. Since the electricity data is monthly and there are significant ACF's at every 12 lags, the seasonal component is 12 months.
+
+## Problem 3c
+```{r}
+diff_seasonal <- diff(diff_log_electricity, lag = 12)
+plot(diff_seasonal)
+```
+Yes, the plot looks stationary now.
+
+## Problem 3d
+```{r}
+acf(diff_seasonal)
+```
+- $p=0$ because no gradual decay appears in ACF.
+- $d=1$ because we needed first differencing to remove trend/non-stationarity.
+- $q=1$ because of a sharp drop in ACF after lag 1.
+- $P=0$ because no gradual decay or spike pattern.
+- $D=1$ because seasonal differencing of order 1 is needed.
+- $Q=1$ because the large spike at lag 12.
+- Seasonal period of 12
+
+Therefore a model to consider would be:
+
+$ARIMA(0,1,1) X (0,1,1)_{12}$
+
+## Problem 4a
+
+```{r}
+library(TSA)
+data("airmiles")
+acf(airmiles)
+pacf(airmiles)
+```
+Just going by the ACF and PACF:
+
+- $p=0$ because there is no sharp cutoff in PACF.
+- $d=1$ because the series appears non-stationary and a first differencing is likely needed.
+- $q=1$ because ACF cuts of after lag 1 which suggests $MA(1)$.
+- $P=0$ because PACF does not show a seasonal spike at lag 12 suggesting no strong seasonal AR.
+- $D=1$ because ACF shows spikes every 12 lags suggesting one seasonal difference is needed.
+- $Q=1$ because of the significant spike at lag 12 suggesting seasonal $MA(1)$.
+- $s=12$ because this is monthly data.
+
+# Problem 4b
+
+```{r}
+fit_b <- arima(airmiles, 
+               order = c(0, 1, 1), 
+               seasonal = list(order = c(0, 1, 1), period = 12))
+
+ts.plot(residuals(fit_b), main = "Residual Plot", ylab = "Residuals")
+acf(residuals(fit_b), main = "ACF of Residuals")
+
+```
+$ARIMA(0,1,1) X (0,1,0)_{12}$ appears to be a reasonable model because:
+
+- The residual plot shows no obvious trend or seasonality.
+- The ACF of residuals has all non-significant values.
+
+# Problem 4c
+
+```{r}
+library(forecast)
+fit_auto <- auto.arima(airmiles)
+summary(fit_auto)
+```
+# Problem 4d
+
+```{r}
+model_d <- arima(airmiles, 
+                 order = c(1, 0, 1), 
+                 seasonal = list(order = c(0, 1, 1), period = 12))
+
+ts.plot(residuals(model_d), main = "Residual Plot", ylab = "Residuals")
+acf(residuals(model_d), main = "ACF of Residuals")
+```
+$ARIMA(1,0,1) X (0,1,1)_{12}$ suggested by `auto.arima` appears to be a reasonable model because:
+
+- The residual plot shows no obvious trend or seasonality.
+- The ACF of residuals has all non-significant values.
