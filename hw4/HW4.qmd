@@ -51,5 +51,58 @@ Therefore a model to consider would be:
 
 $ARIMA(0,1,1) X (0,1,1)_{12}$
 
+## Problem 4a
 
+```{r}
+library(TSA)
+data("airmiles")
+acf(airmiles)
+pacf(airmiles)
+```
+Just going by the ACF and PACF:
 
+- $p=0$ because there is no sharp cutoff in PACF.
+- $d=1$ because the series appears non-stationary and a first differencing is likely needed.
+- $q=1$ because ACF cuts of after lag 1 which suggests $MA(1)$.
+- $P=0$ because PACF does not show a seasonal spike at lag 12 suggesting no strong seasonal AR.
+- $D=1$ because ACF shows spikes every 12 lags suggesting one seasonal difference is needed.
+- $Q=1$ because of the significant spike at lag 12 suggesting seasonal $MA(1)$.
+- $s=12$ because this is monthly data.
+
+# Problem 4b
+
+```{r}
+fit_b <- arima(airmiles, 
+               order = c(0, 1, 1), 
+               seasonal = list(order = c(0, 1, 1), period = 12))
+
+ts.plot(residuals(fit_b), main = "Residual Plot", ylab = "Residuals")
+acf(residuals(fit_b), main = "ACF of Residuals")
+
+```
+$ARIMA(0,1,1) X (0,1,0)_{12}$ appears to be a reasonable model because:
+
+- The residual plot shows no obvious trend or seasonality.
+- The ACF of residuals has all non-significant values.
+
+# Problem 4c
+
+```{r}
+library(forecast)
+fit_auto <- auto.arima(airmiles)
+summary(fit_auto)
+```
+# Problem 4d
+
+```{r}
+model_d <- arima(airmiles, 
+                 order = c(1, 0, 1), 
+                 seasonal = list(order = c(0, 1, 1), period = 12))
+
+ts.plot(residuals(model_d), main = "Residual Plot", ylab = "Residuals")
+acf(residuals(model_d), main = "ACF of Residuals")
+```
+$ARIMA(1,0,1) X (0,1,1)_{12}$ suggested by `auto.arima` appears to be a reasonable model because:
+
+- The residual plot shows no obvious trend or seasonality.
+- The ACF of residuals has all non-significant values.
