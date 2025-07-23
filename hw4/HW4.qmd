@@ -79,11 +79,16 @@ fit_b <- arima(airmiles,
 ts.plot(residuals(fit_b), main = "Residual Plot", ylab = "Residuals")
 acf(residuals(fit_b), main = "ACF of Residuals")
 
+library(itsmr)
+test(fit_b$residuals)
+
 ```
 $ARIMA(0,1,1) X (0,1,0)_{12}$ appears to be a reasonable model because:
 
 - The residual plot shows no obvious trend or seasonality.
 - The ACF of residuals has all non-significant values.
+- For the box test, $p>0.05$ therefore the null hypothesis that the residuals resemble white-noise cannot be rejected.
+- The Q-Q plot shows the data is normal but there is an outlier.
 
 # Problem 4c
 
@@ -101,8 +106,11 @@ model_d <- arima(airmiles,
 
 ts.plot(residuals(model_d), main = "Residual Plot", ylab = "Residuals")
 acf(residuals(model_d), main = "ACF of Residuals")
+test(model_d$residuals)
 ```
 $ARIMA(1,0,1) X (0,1,1)_{12}$ suggested by `auto.arima` appears to be a reasonable model because:
 
 - The residual plot shows no obvious trend or seasonality.
 - The ACF of residuals has all non-significant values.
+- For the box test, $p>0.05$ therefore the null hypothesis that the residuals resemble white-noise cannot be rejected.
+- The Q-Q plot shows the data is normal but there is an outlier.
