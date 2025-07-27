@@ -1,19 +1,19 @@
+# Listing 1 - simple plot
 data <- read.csv("fhvhv_tripdata_2024_uber_timeseries.csv")
 ts_data <- ts(data$avg_duration_min, frequency = 366, start = c(2024, 1))
-
 
 library(ggplot2)
 
 plot(ts_data,
      main = "Daily Average Uber Trip Duration (2024)",
      xlab = "Day of Year",
-     ylab = "Average Duration (min)",
-     col = "blue")
+     ylab = "Average Duration (min)")
 
 
+# Listing 2 - plot highlighting weekends and holidays
 data$pickup_date <- as.Date(data$pickup_date)
 
-library(lubridate)
+#library(lubridate)
 library(dplyr)
 
 data <- data %>%
@@ -62,3 +62,12 @@ ggplot(data, aes(x = pickup_date, y = avg_duration_min)) +
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank()
   )
+
+# Listing 3
+Stationarity tests
+
+acf(ts_data, main = "ACF of Daily Average Duration", lag.max = 150)
+pacf(ts_data, main = "PACF of Daily Average Duration", lag.max = 150)
+
+library(tseries)
+adf.test(ts_data)
