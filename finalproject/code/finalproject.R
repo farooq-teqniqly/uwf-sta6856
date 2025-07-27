@@ -71,3 +71,12 @@ pacf(ts_data, main = "PACF of Daily Average Duration", lag.max = 150)
 
 library(tseries)
 adf.test(ts_data)
+
+# Listing 4
+# Secondary analysis / modeling
+
+library(forecast)
+diff_data <- diff(ts_data)
+fit <- auto.arima(ts_data)
+summary(fit)
+checkresiduals(fit)
