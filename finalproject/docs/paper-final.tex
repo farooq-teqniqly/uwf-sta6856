@@ -52,7 +52,6 @@ The dataset used in this study consists of the average daily trip duration (in m
 To begin the exploratory phase, a time series line plot of the daily average trip durations was generated. Figure~\ref{fig:initial_plot} displays this unannotated time series. Several key patterns emerge, even without additional labeling. The plot exhibits moderate variability throughout the year with visible periodic fluctuations. A general upward trend is observed during the summer months, suggesting seasonal effects. There also appear to be isolated spikes and drops, which may correspond to holidays, weather events, or changes in urban mobility behavior.
 
 \begin{figure}
-  \centering
   \includegraphics[width=\textwidth]{avg_trip_duration_simple.png}
   \caption{Daily average Uber trip duration in NYC for 2024.}
   \label{fig:initial_plot}
@@ -61,7 +60,6 @@ To begin the exploratory phase, a time series line plot of the daily average tri
 In an attempt to expose more patterns, a second version of the time series plot was created with Fridays, Saturdays, Sundays, and the major holidays in the United States highlighted (Figure~\ref{fig:timeseries_plot}). This annotated visualization reveals more structured weekly seasonality, with higher average durations occurring more frequently on weekends. Holidays such as Independence Day, Labor Day, and Thanksgiving are associated with pronounced decreases in duration.
 
 \begin{figure}
-  \centering
   \includegraphics[width=\textwidth]{avg_trip_duration_by_day.png}
   \caption{Daily average Uber trip duration in NYC for 2024, with weekends and holidays highlighted.}
   \label{fig:timeseries_plot}
@@ -79,7 +77,6 @@ Because the p-value is less than 0.05, we reject the null hypothesis at the sign
 The ACF plot (Figure~\ref{fig:acf_plot}) shows a slow and gradual decline, consistent with a nonstationary series. This pattern suggests the presence of a trend and the need to differentiate the series to induce stationarity. Significant autocorrelation at multiple lags may also indicate latent seasonality.
 
 \begin{figure}
-  \centering
   \includegraphics[width=\textwidth]{finalproject/images/acf-plot.png}
   \caption{Autocorrelation Function (ACF) plot of daily average trip durations. The plot shows a slow decay, suggesting non-stationarity and potential seasonality in the data.}
   \label{fig:acf_plot}
@@ -89,7 +86,6 @@ The ACF plot (Figure~\ref{fig:acf_plot}) shows a slow and gradual decline, consi
 The PACF plot (Figure~\ref{fig:pacf_plot}) shows a large spike at lag 1, followed by a tapering tail of smaller spikes. This pattern suggests the existence of an autoregressive (AR) structure in the series. The combination of these findings supports the consideration of ARIMA modeling, potentially with seasonal differencing.
 
 \begin{figure}
-  \centering
   \includegraphics[width=\textwidth]{finalproject/images/pacf-plot.png}
   \caption{Partial Autocorrelation Function (PACF) plot of daily average trip durations. The sharp drop after the first few lags indicates the presence of autoregressive components.}
   \label{fig:pacf_plot}
