@@ -93,7 +93,54 @@ The PACF plot (Figure~\ref{fig:pacf_plot}) shows a large spike at lag 1, followe
 
 Although the ADF test returned a p-value of 0.04612, suggesting stationarity at the 5\% significance level, the ACF and PACF plots exhibit patterns indicative of nonstationarity, including a slow decay in autocorrelation. This discrepancy implies that the series may be only marginally stationary or trend-stationary. To address this, further differencing may be warranted in subsequent model development.
 
-\section {Secondary Analysis}
+\section{Secondary Analysis and Modeling}
+
+To model the average daily Uber trip durations, we applied the \texttt{auto.arima()} function from the \texttt{forecast} package in R, which identified an ARIMA(3,1,2) model as the best fit.
+
+\begin{verbatim}
+ARIMA(3,1,2)
+
+Coefficients:
+         ar1      ar2      ar3      ma1     ma2
+      0.8166  -0.4500  -0.3559  -1.2271  0.6940
+\end{verbatim}
+
+The model includes three autoregressive (AR) terms and two moving average (MA) terms, with one order of differencing. The residuals from this model were analyzed using diagnostic plots and the Ljung-Box test to assess the adequacy of the model.
+
+\begin{figure}
+  \includegraphics[width=\textwidth]{finalproject/images/arima-residuals.png}
+  \caption{Residual diagnostics for ARIMA(3,1,2): time plot (top), ACF of residuals (bottom left), and histogram with normal distribution curve (bottom right).}
+  \label{fig:arima_residuals}
+\end{figure}
+
+The residual plots (Figure~\ref{fig:arima_residuals}) suggest that the residuals are centered around zero with constant variance and no strong autocorrelation. The ACF plot of residuals confirms the absence of significant autocorrelation at most lags.
+
+The Ljung-Box test further supports the adequacy of the model:
+
+\begin{verbatim}
+Ljung-Box Q* = 88.007, df = 68, p-value = 0.05184
+\end{verbatim}
+
+Since the p-value is slightly above 0.05, we do not reject the null hypothesis that the residuals are white noise. Therefore, a first differencing has resulted in stationarity.
+
+\subsection*{Fitted Model Equation}
+
+The fitted ARIMA(3,1,2) model can be written as:
+
+\begin{multline}
+Y_t = Y_{t-1} 
++ 0.8166 (Y_{t-1} - Y_{t-2}) 
+- 0.4500 (Y_{t-2} - Y_{t-3}) 
+- 0.3559 (Y_{t-3} - Y_{t-4}) \\
++ \varepsilon_t 
+- 1.2271 \varepsilon_{t-1} 
++ 0.6940 \varepsilon_{t-2}
+\end{multline}
+
+where \( Y_t \) denotes the average trip duration at time \( t \) and \( \varepsilon_t \) is a white noise error term.
+
+The residual diagnostics and statistical tests provide evidence that this model is a reasonable choice for forecasting the average daily trip durations.
+
 \section {Discussion and Conclusion}
 
 \bibliographystyle{plain}
