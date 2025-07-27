@@ -49,9 +49,17 @@ ggplot(data, aes(x = pickup_date, y = avg_duration_min)) +
   geom_line(data = fridays, aes(color = "Friday")) +
   geom_line(data = saturdays, aes(color = "Saturday")) +
   geom_line(data = sundays, aes(color = "Sunday")) +
-  geom_point(data = holidays, aes(x = date, y = avg_duration_min), color = "black", fill = "yellow", size = 2, shape = 21) +
-  geom_text(data = holidays, aes(x = date, y = avg_duration_min, label = label), vjust = -1, size = 3, angle = 45) +
-  geom_smooth(aes(x = pickup_date, y = avg_duration_min), method = "loess", se = FALSE, color = "black", linetype = "dashed") +
+  geom_point(data = holidays, aes(x = date, y = avg_duration_min), 
+             color = "black", fill = "yellow", size = 2, shape = 21) +
+  geom_text(data = holidays, aes(x = date, y = avg_duration_min, label = label), 
+            vjust = -1, size = 3, angle = 45) +
+  scale_color_manual(
+    values = c(
+      "Friday" = "#332288", 
+      "Saturday" = "#EE7733",
+      "Sunday" = "#117733"   
+    )
+  ) +
   labs(
     title = "Daily Average Trip Duration (2024)",
     x = "Date", y = "Average Duration (minutes)",
@@ -63,8 +71,10 @@ ggplot(data, aes(x = pickup_date, y = avg_duration_min)) +
     panel.grid.minor = element_blank()
   )
 
+
+
 # Listing 3
-Stationarity tests
+#Stationarity tests
 
 acf(ts_data, main = "ACF of Daily Average Duration", lag.max = 150)
 pacf(ts_data, main = "PACF of Daily Average Duration", lag.max = 150)
@@ -80,3 +90,46 @@ diff_data <- diff(ts_data)
 fit <- auto.arima(ts_data)
 summary(fit)
 checkresiduals(fit)
+
+# Listing 5
+# Forecasting
+h <- 14
+forecast_result <- forecast(fit, h = h)
+
+start_date <- as.Date("2025-01-01")
+forecast_dates <- seq.Date(from = start_date, by = "day", length.out = h)
+forecast_summary <- as.data.frame(forecast_result)
+formatted_forecast <- cbind(Date = forecast_dates, forecast_summary)
+
+formatted_forecast <- within(formatted_forecast, {
+  `Point Forecast` <- round(`Point Forecast`, 2)
+  `Lo 80` <- round(`Lo 80`, 2)
+  `Hi 80` <- round(`Hi 80`, 2)
+  `Lo 95` <- round(`Lo 95`, 2)
+  `Hi 95` <- round(`Hi 95`, 2)
+})
+
+print(formatted_forecast)
+
+
+autoplot(forecast_result) +
+  labs(
+    title = "14-Day Forecast of Average Uber Trip Duration",
+    x = "Day",
+    y = "Avg Trip Duration (minutes)"
+  ) +
+  theme_minimal()
+
+checkresiduals(forecast_result)
+
+forecast_summary <- as.data.frame(forecast_result)
+forecast_times <- time(forecast_result)
+
+start_date <- as.Date("2025-01-01")
+forecast_dates <- seq.Date(from = start_date, by = "day", length.out = h)
+
+formatted_forecast <- cbind(Date = forecast_dates, forecast_summary)
+
+summary(forecast_result)
+
+forecast_dates <- as.Date(time(forecast_result), origin = "2024-12-31")
