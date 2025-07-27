@@ -141,7 +141,20 @@ where \( Y_t \) denotes the average trip duration at time \( t \) and \( \vareps
 
 The residual diagnostics and statistical tests provide evidence that this model is a reasonable choice for forecasting the average daily trip durations.
 
-\section {Discussion and Conclusion}
+\section{Discussion and Conclusion}
+
+This project set out to analyze temporal trends in Uber trip durations using New York City's High-Volume For-Hire Vehicle (FHV) dataset for 2024. The analysis focused on daily average trip durations and applied time series modeling techniques to identify patterns and forecast future behavior.
+
+The ARIMA(3,1,2) model fitted to the data demonstrated a reasonably good fit, with low residual autocorrelation and a Ljung-Box test p-value close to the significance threshold. The model successfully captured temporal dynamics and was informed by stationarity checks, ACF, and PACF analysis. The results indicate that the duration of Uber rides exhibits regular fluctuations, with weekends and most holidays showing elevated travel times, likely due to increased congestion or changes in demand patterns.
+
+One strength of the analysis was the use of big data tools (PySpark) to preprocess more than 150 million records into a manageable time series format. This preprocessing enabled meaningful aggregation and reduced the computational burden on R, which was used for modeling and visualization. Visualizing holidays and weekends also helped contextualize anomalies and recurring patterns in the data.
+
+However, the study has several limitations. The univariate ARIMA model only considers the average duration of the trip over time and excludes external variables such as weather, traffic incidents, or special events that could improve predictive precision. In addition, daily aggregation smooths out intraday variation, potentially masking important temporal structures. The dataset also reflects only Uber rides and may not capture broader trends across other providers or transportation modes.
+
+Future work could include incorporating a multivariate approach to examine the relationships between trip duration, trip count, and distance. More granular models (for example, hourly data) or spatial analysis could also reveal deeper insights into congestion dynamics across neighborhoods.
+
+In conclusion, this project demonstrates the feasibility and value of using large-scale ride-hailing data for time-series analysis. The findings support the use of predictive models to anticipate congestion trends and could inform urban planning, fleet management, or dynamic pricing strategies.
+
 
 \bibliographystyle{plain}
 \bibliography{finalproject/docs/refs}
