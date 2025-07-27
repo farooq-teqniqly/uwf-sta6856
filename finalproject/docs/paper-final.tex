@@ -6,6 +6,7 @@
 \usepackage{listings}
 \usepackage{xcolor}
 \usepackage{ulem}
+\usepackage{booktabs}
 
 \lstset{
     language=R,                  % Specify R as the language
@@ -36,7 +37,7 @@
 \section{Introduction}
 Urban mobility has undergone a transformative shift with the proliferation of ride-hailing services such as Uber. In dense metropolitan areas such as New York City, these services generate massive amounts of data that can reveal important patterns in travel behavior. This project proposes a time series analysis of average daily Uber trip durations in New York City throughout the year 2024, using publicly available high-volume for-hire vehicle (FHV) trip data.
 
-The data set is sourced from the NYC Taxi and Limousine Commission (TLC) and contains more than 150 million records for 2024 alone. For the purpose of this analysis, a subset of the data has been prepared using PySpark to compute the average duration of Uber trips per day, resulting in 365 data points. The data set is accessible through the NYC TLC portal\cite{nyctlc2024}.
+The data set is sourced from the NYC Taxi and Limousine Commission (TLC) and contains more than 150 million records for 2024 alone. For the purpose of this analysis, a subset of the data has been preprocessed using PySpark to compute the average duration of Uber trips per day, resulting in 365 data points. Time series modeling and visualization were performed exclusively in R. The data set is accessible through the NYC TLC portal\cite{nyctlc2024}.
 
 The main objective of this project is to explore the temporal behavior of Uber trip durations and apply time series modeling to understand and forecast future values. Specific goals include examining stationarity, identifying appropriate models through diagnostics, and evaluating the accuracy of forecasts. A review of previous research indicates that ride-hailing data have been used extensively for congestion, demand prediction, and fleet optimization, but less so for temporal duration modeling at a daily resolution.
 
@@ -46,9 +47,15 @@ This study contributes by applying time series methods to a large-scale, real-wo
 
 \section{Preliminary Analysis}
 
+\subsection{Data Preparation and Description}
 The dataset used in this study consists of the average daily trip duration (in minutes) for Uber trips in New York City throughout 2024. This time series was constructed by aggregating more than 150 million ride records published by the New York Taxi and Limousine Commission. A PySpark pipeline was used to compute the average duration per day, resulting in a time series of 366 observations (one for each day in the leap year 2024).
 
+The decision to use the average daily trip duration as the primary variable was motivated by both practical and analytical considerations. From a practical point of view, the original dataset comprises more than 150 million individual trip records, which would pose significant computational challenges for time series modeling and visualization. Aggregating to daily averages drastically reduces the data size, while preserving temporal patterns of interest. 
 
+Analytically, daily aggregation smooths out short-term noise (e.g., from trip-level variability) and highlights broader trends, such as weekly or seasonal cycles. This level of granularity strikes a balance between detail and explanatory power, making it suitable for time-series methods such as ARIMA. It also allows for meaningful comparisons between days, making the results more actionable to understand congestion and mobility behavior.
+
+
+\subsection{Initial Visualization and Trends}
 To begin the exploratory phase, a time series line plot of the daily average trip durations was generated. Figure~\ref{fig:initial_plot} displays this unannotated time series. Several key patterns emerge, even without additional labeling. The plot exhibits moderate variability throughout the year with visible periodic fluctuations. A general upward trend is observed during the summer months, suggesting seasonal effects. There also appear to be isolated spikes and drops, which may correspond to holidays, weather events, or changes in urban mobility behavior.
 
 \begin{figure}
@@ -57,6 +64,7 @@ To begin the exploratory phase, a time series line plot of the daily average tri
   \label{fig:initial_plot}
 \end{figure}
 
+\subsection{Annotated Time Series and Weekly Seasonality}
 In an attempt to expose more patterns, a second version of the time series plot was created with Fridays, Saturdays, Sundays, and the major holidays in the United States highlighted (Figure~\ref{fig:timeseries_plot}). This annotated visualization reveals more structured weekly seasonality, with higher average durations occurring more frequently on weekends. Holidays such as Memorial Day, Independence Day, and Christmas are associated with pronounced decreases in duration.
 
 \begin{figure}
@@ -65,15 +73,10 @@ In an attempt to expose more patterns, a second version of the time series plot 
   \label{fig:timeseries_plot}
 \end{figure}
 
+\subsection{Stationarity Assessment}
+To determine whether the daily average Uber trip duration series is stationary, we performed the Augmented Dickey-Fuller (ADF) test. The ADF test yielded a $p$-value of 0.04612. Because the $p$-value is less than 0.05, we reject the null hypothesis at the significance level $\alpha$=0.05. Therefore, there is statistical evidence to suggest that the time series is stationary.
 
-To determine whether the daily average Uber trip duration series is stationary, we performed the Augmented Dickey-Fuller (ADF) test. The ADF test yielded the following results:
-
-\begin{quote}
-\texttt{Dickey-Fuller = -3.4658, Lag order = 7, p-value = 0.04612}
-\end{quote}
-
-Because the p-value is less than 0.05, we reject the null hypothesis at the significance level 5\%. Therefore, there is statistical evidence to suggest that the time series is stationary.
-
+\subsection{Autocorrelation and Partial Autocorrelation Analysis}
 The ACF plot (Figure~\ref{fig:acf_plot}) shows a slow and gradual decline, consistent with a nonstationary series. This pattern suggests the presence of a trend and the need to differentiate the series to induce stationarity. Significant autocorrelation at multiple lags may also indicate latent seasonality.
 
 \begin{figure}
@@ -81,7 +84,6 @@ The ACF plot (Figure~\ref{fig:acf_plot}) shows a slow and gradual decline, consi
   \caption{Autocorrelation Function (ACF) plot of daily average trip durations. The plot shows a slow decay, suggesting non-stationarity and potential seasonality in the data.}
   \label{fig:acf_plot}
 \end{figure}
-
 
 The PACF plot (Figure~\ref{fig:pacf_plot}) shows a large spike at lag 1, followed by a tapering tail of smaller spikes. This pattern suggests the existence of an autoregressive (AR) structure in the series. The combination of these findings supports the consideration of ARIMA modeling, potentially with seasonal differencing.
 
@@ -91,19 +93,28 @@ The PACF plot (Figure~\ref{fig:pacf_plot}) shows a large spike at lag 1, followe
   \label{fig:pacf_plot}
 \end{figure}
 
-Although the ADF test returned a p-value of 0.04612, suggesting stationarity at the 5\% significance level, the ACF and PACF plots exhibit patterns indicative of nonstationarity, including a slow decay in autocorrelation. This discrepancy implies that the series may be only marginally stationary or trend-stationary. To address this, further differencing may be warranted in subsequent model development.
+\subsection{Reconciling ADF and ACF/PACF Findings}
+Although the ADF test returned a $p$-value of 0.04612, suggesting stationarity at significance level $\alpha$=0.05, the ACF and PACF plots exhibit patterns indicative of nonstationarity, including a slow decay in autocorrelation. This discrepancy implies that the series may be only marginally stationary or trend-stationary. To address this, further differencing is warranted in the model's subsequent development.
+
 
 \section{Secondary Analysis and Modeling}
 
-To model the average daily Uber trip durations, we applied the \texttt{auto.arima()} function from the \texttt{forecast} package in R, which identified an ARIMA(3,1,2) model as the best fit.
+\subsection{Model Fitting}
 
-\begin{verbatim}
+To model the average daily Uber trip duration, we applied the \texttt{auto.arima()} function from the \texttt{forecast} package in R, which identified an ARIMA(3,1,2) model as the best fit (Figure \ref{fig:arima_coefficients}).
+
+\begin{figure}[ht]
+\centering
+\label{fig:arima_coefficients}
+\begin{lstlisting}[basicstyle=\ttfamily]
 ARIMA(3,1,2)
 
 Coefficients:
          ar1      ar2      ar3      ma1     ma2
       0.8166  -0.4500  -0.3559  -1.2271  0.6940
-\end{verbatim}
+\end{lstlisting}
+\caption{Estimated ARIMA(3,1,2) model coefficients.}
+\end{figure}
 
 The model includes three autoregressive (AR) terms and two moving average (MA) terms, with one order of differencing. The residuals from this model were analyzed using diagnostic plots and the Ljung-Box test to assess the adequacy of the model.
 
@@ -115,19 +126,14 @@ The model includes three autoregressive (AR) terms and two moving average (MA) t
 
 The residual plots (Figure~\ref{fig:arima_residuals}) suggest that the residuals are centered around zero with constant variance and no strong autocorrelation. The ACF plot of residuals confirms the absence of significant autocorrelation at most lags.
 
-The Ljung-Box test further supports the adequacy of the model:
+The Ljung-Box test further supports the adequacy of the model ($p = 0.05184$). Since the $p$-value is slightly above 0.05, we do not reject the null hypothesis that the residuals are white noise. Therefore, a first differencing has resulted in stationarity.
 
-\begin{verbatim}
-Ljung-Box Q* = 88.007, df = 68, p-value = 0.05184
-\end{verbatim}
+\subsection{Fitted Model Equation}
 
-Since the p-value is slightly above 0.05, we do not reject the null hypothesis that the residuals are white noise. Therefore, a first differencing has resulted in stationarity.
-
-\subsection*{Fitted Model Equation}
-
-The fitted ARIMA(3,1,2) model can be written as:
+The fitted ARIMA(3,1,2) model can be written as shown in Equation \ref{eq:arima_model}.
 
 \begin{multline}
+\label{eq:arima_model}
 Y_t = Y_{t-1} 
 + 0.8166 (Y_{t-1} - Y_{t-2}) 
 - 0.4500 (Y_{t-2} - Y_{t-3}) 
@@ -139,21 +145,86 @@ Y_t = Y_{t-1}
 
 where \( Y_t \) denotes the average trip duration at time \( t \) and \( \varepsilon_t \) is a white noise error term.
 
-The residual diagnostics and statistical tests provide evidence that this model is a reasonable choice for forecasting the average daily trip durations.
+The residual diagnostics and statistical tests provide evidence that this model is a reasonable choice for forecasting the average daily trip durations (Figure \ref{fig:arima_residuals}).
+
+\subsection{Interpretation of the ARIMA Model}
+
+The fitted ARIMA(3,1,2) model suggests that the average Uber trip duration on a given day is influenced by a combination of past values and past random fluctuations. 
+
+The \textbf{autoregressive (AR)} component means that the duration is partly predicted using the trip durations of the last three days. If durations have been increasing or decreasing in recent days, this trend is likely to continue in the short term. 
+
+The \textbf{integrated (I)} component—represented by the differencing step - accounts for nonstationarity, helping the model focus on changes from one day to the next rather than absolute levels.
+
+The \textbf{moving average (MA)} component adjusts the predictions based on the last two prediction errors. For example, if a previous day's duration was unusually high or low due to unexpected traffic or a weather event, the MA terms help correct for that anomaly in future predictions.
+
+Together, these components allow the ARIMA model to capture both consistent temporal patterns and unexpected variations in ride durations, making it a practical tool to forecast and understand urban mobility trends over time.
+
+
+\subsection{Forecasting}
+
+To evaluate the predictive utility of the fitted model, we generated a 14-day forecast using the ARIMA(3,1,2) model. Figure~\ref{fig:forecast_plot} shows the projected average trip duration along with the 80\% and 95\% confidence intervals.
+
+\begin{figure}
+  \includegraphics[width=\textwidth]{finalproject/images/forecast-plot.png}
+  \caption{14-day forecast of average Uber trip duration with 80\% and 95\% confidence intervals.}
+  \label{fig:forecast_plot}
+\end{figure}
+
+The forecast suggests that the average travel duration is expected to stabilize in the range of 18 to 19 minutes. Although point forecasts are relatively flat, the widening confidence intervals reflect increased uncertainty over time. The forecasted values for the next 14 days, along with their 80\% and 95\% prediction intervals, are shown in Table~\ref{tab:forecast_values}.
+
+\begin{table}[ht]
+\centering
+\caption{14-day forecast of average trip durations with 80\% and 95\% prediction intervals.}
+\label{tab:forecast_values}
+\begin{tabular}{lrrrrr}
+\toprule
+Date & Forecast & Lo 80 & Hi 80 & Lo 95 & Hi 95 \\
+\midrule
+2025-01-01 & 18.25 & 17.11 & 19.40 & 16.50 & 20.00 \\
+2025-01-02 & 18.52 & 17.19 & 19.85 & 16.48 & 20.55 \\
+2025-01-03 & 18.98 & 17.53 & 20.42 & 16.76 & 21.19 \\
+2025-01-04 & 19.14 & 17.67 & 20.62 & 16.89 & 21.40 \\
+2025-01-05 & 18.98 & 17.48 & 20.48 & 16.68 & 21.27 \\
+2025-01-06 & 18.60 & 17.04 & 20.16 & 16.22 & 20.99 \\
+2025-01-07 & 18.31 & 16.62 & 20.00 & 15.73 & 20.90 \\
+2025-01-08 & 18.30 & 16.44 & 20.17 & 15.46 & 21.15 \\
+2025-01-09 & 18.56 & 16.56 & 20.56 & 15.50 & 21.62 \\
+2025-01-10 & 18.88 & 16.80 & 20.95 & 15.71 & 22.04 \\
+2025-01-11 & 19.02 & 16.92 & 21.13 & 15.80 & 22.24 \\
+2025-01-12 & 18.91 & 16.78 & 21.04 & 15.65 & 22.17 \\
+2025-01-13 & 18.64 & 16.46 & 20.81 & 15.31 & 21.97 \\
+2025-01-14 & 18.42 & 16.15 & 20.68 & 14.95 & 21.88 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Residual diagnostics (Figure~\ref{fig:forecast_diagnostics}) indicate that residuals are approximately normally distributed and do not exhibit significant autocorrelation, as confirmed by the Ljung-Box test ($p = 0.0518$), suggesting that the model adequately captures the structure in the data.
+
+\begin{figure}
+  \includegraphics[width=\textwidth]{finalproject/images/forecast-residuals.png}
+  \caption{Residual diagnostics for the 14-day ARIMA forecast: time plot (top), ACF of residuals (bottom left), and histogram with normal distribution curve (bottom right). }
+  \label{fig:forecast_diagnostics}
+\end{figure}
+
 
 \section{Discussion and Conclusion}
 
 This project set out to analyze temporal trends in Uber trip durations using New York City's High-Volume For-Hire Vehicle (FHV) dataset for 2024. The analysis focused on daily average trip durations and applied time series modeling techniques to identify patterns and forecast future behavior.
 
-The ARIMA(3,1,2) model fitted to the data demonstrated a reasonably good fit, with low residual autocorrelation and a Ljung-Box test p-value close to the significance threshold. The model successfully captured temporal dynamics and was informed by stationarity checks, ACF, and PACF analysis. The results indicate that the duration of Uber rides exhibits regular fluctuations, with weekends and most holidays showing elevated travel times, likely due to increased congestion or changes in demand patterns.
+The ARIMA(3,1,2) model fitted to the data demonstrated a reasonably good fit, with low residual autocorrelation and a Ljung-Box test $p$-value close to the significance threshold. The model successfully captured temporal dynamics and was informed by stationarity checks, ACF, and PACF analysis. The results indicate that the duration of Uber rides exhibits regular fluctuations, with weekends and most holidays showing elevated travel times, likely due to increased congestion or changes in demand patterns.
+
+The fitted ARIMA model was also used to generate a 14-day forecast of average trip durations. The forecast suggests continued fluctuations with point predictions ranging from approximately 18 to 19 minutes. The 95\% prediction intervals provide a reasonable range of uncertainty, with the lower bounds staying above 16 minutes and the upper bounds exceeding 21 minutes at times. This demonstrates the model's utility for short-term forecasting of ride duration trends.
+
+Importantly, the structure of the ARIMA model provides interpretable insights. The autoregressive (AR) terms reflect the persistence of duration trends over three days, while the moving average (MA) terms capture the impact of recent anomalies such as sudden spikes or drops in trip duration due to unpredictable events such as traffic disruptions or weather. The presence of two MA terms allows the model to learn from forecasting errors over the past two days, making the forecasts more adaptive and robust to short-term volatility.
 
 One strength of the analysis was the use of big data tools (PySpark) to preprocess more than 150 million records into a manageable time series format. This preprocessing enabled meaningful aggregation and reduced the computational burden on R, which was used for modeling and visualization. Visualizing holidays and weekends also helped contextualize anomalies and recurring patterns in the data.
 
-However, the study has several limitations. The univariate ARIMA model only considers the average duration of the trip over time and excludes external variables such as weather, traffic incidents, or special events that could improve predictive precision. In addition, daily aggregation smooths out intraday variation, potentially masking important temporal structures. The dataset also reflects only Uber rides and may not capture broader trends across other providers or transportation modes.
+However, the study has several limitations. The univariate ARIMA model focuses solely on past values and past errors in average trip duration, without explicitly incorporating external variables such as weather conditions, traffic incidents, or special events. Although moving average terms help absorb recent unexplained anomalies, they do not directly account for known external factors that could improve predictive accuracy. Additionally, aggregating data at the daily level smooths over intraday variations, potentially obscuring important temporal dynamics. Finally, the data set includes only Uber trips, which may limit the generalization of the findings to the broader ride-hailing or transportation ecosystem.
 
 Future work could include incorporating a multivariate approach to examine the relationships between trip duration, trip count, and distance. More granular models (for example, hourly data) or spatial analysis could also reveal deeper insights into congestion dynamics across neighborhoods.
 
 In conclusion, this project demonstrates the feasibility and value of using large-scale ride-hailing data for time-series analysis. The findings support the use of predictive models to anticipate congestion trends and could inform urban planning, fleet management, or dynamic pricing strategies.
+
 
 
 \bibliographystyle{plain}
