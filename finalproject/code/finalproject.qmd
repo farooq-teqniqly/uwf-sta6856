@@ -1,20 +1,34 @@
-# Listing 1 - simple plot
-data <- read.csv("fhvhv_tripdata_2024_uber_timeseries.csv")
-ts_data <- ts(data$avg_duration_min, frequency = 366, start = c(2024, 1))
+---
+title: "Final Project"
+author: "Farooq Mahmud"
+format: pdf
+editor: source
+---
 
+## Load time series
+
+
+```{r}
+data <- read.csv(file.path(getwd(), "../data", "fhvhv_tripdata_2024_uber_timeseries.csv"))
+ts_data <- ts(data$avg_duration_min, frequency = 366, start = c(2024, 1))
+```
+
+
+## Plot time series
+```{r}
 library(ggplot2)
 
 plot(ts_data,
      main = "Daily Average Uber Trip Duration (2024)",
      xlab = "Day of Year",
      ylab = "Average Duration (min)")
+```
+## Plot Highlighting Weekends and Holidays
 
-
-# Listing 2 - plot highlighting weekends and holidays
-data$pickup_date <- as.Date(data$pickup_date)
-
-#library(lubridate)
+```{r}
 library(dplyr)
+
+data$pickup_date <- as.Date(data$pickup_date)
 
 data <- data %>%
   mutate(weekday = weekdays(pickup_date))
@@ -71,31 +85,57 @@ ggplot(data, aes(x = pickup_date, y = avg_duration_min)) +
     panel.grid.minor = element_blank()
   )
 
+```
 
+## Stationarity Tests
 
-# Listing 3
-#Stationarity tests
-
-acf(ts_data, main = "ACF of Daily Average Duration", lag.max = 150)
-pacf(ts_data, main = "PACF of Daily Average Duration", lag.max = 150)
-
+```{r}
 library(tseries)
 adf.test(ts_data)
+```
 
-# Listing 4
-# Secondary analysis / modeling
+## ACF Plot
+```{r}
+acf(ts_data, main = "ACF of Daily Average Duration", lag.max = 150)
+```
+## PACF Plot
+```{r}
+pacf(ts_data, main = "PACF of Daily Average Duration", lag.max = 150)
+```
 
+## Model Fitting
+```{r}
 library(forecast)
 diff_data <- diff(ts_data)
 fit <- auto.arima(ts_data)
 summary(fit)
 checkresiduals(fit)
+```
 
-# Listing 5
-# Forecasting
+## 14-Day Forecast
+```{r}
 h <- 14
 forecast_result <- forecast(fit, h = h)
+```
 
+## 14-Day Forecast Plot
+```{r}
+autoplot(forecast_result) +
+  labs(
+    title = "14-Day Forecast of Average Uber Trip Duration",
+    x = "Day",
+    y = "Avg Trip Duration (minutes)"
+  ) +
+  theme_minimal()
+```
+
+## Forecast Residuals
+```{r}
+checkresiduals(forecast_result)
+```
+
+## Table of Forecasted Values
+```{r}
 start_date <- as.Date("2025-01-01")
 forecast_dates <- seq.Date(from = start_date, by = "day", length.out = h)
 forecast_summary <- as.data.frame(forecast_result)
@@ -110,26 +150,4 @@ formatted_forecast <- within(formatted_forecast, {
 })
 
 print(formatted_forecast)
-
-
-autoplot(forecast_result) +
-  labs(
-    title = "14-Day Forecast of Average Uber Trip Duration",
-    x = "Day",
-    y = "Avg Trip Duration (minutes)"
-  ) +
-  theme_minimal()
-
-checkresiduals(forecast_result)
-
-forecast_summary <- as.data.frame(forecast_result)
-forecast_times <- time(forecast_result)
-
-start_date <- as.Date("2025-01-01")
-forecast_dates <- seq.Date(from = start_date, by = "day", length.out = h)
-
-formatted_forecast <- cbind(Date = forecast_dates, forecast_summary)
-
-summary(forecast_result)
-
-forecast_dates <- as.Date(time(forecast_result), origin = "2024-12-31")
+```
