@@ -20,7 +20,6 @@ jobs:
         run: |
           mkdir -p upload/finalproject/code
           mkdir -p upload/finalproject/data
-          mkdir -p upload/finalproject/docs
 
           cp finalproject/code/finalproject.qmd upload/finalproject/code/finalproject.qmd
           cp finalproject/code/finalproject.ipynb upload/finalproject/code/finalproject.ipynb
