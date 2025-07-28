@@ -17,11 +17,28 @@ ts_data <- ts(data$avg_duration_min, frequency = 366, start = c(2024, 1))
 ## Plot time series
 ```{r}
 library(ggplot2)
+library(scales)
 
-plot(ts_data,
-     main = "Daily Average Uber Trip Duration (2024)",
-     xlab = "Day of Year",
-     ylab = "Average Duration (min)")
+start_date <- as.Date("2024-01-01")
+date_seq <- seq(from = start_date, by = "day", length.out = length(ts_data))
+
+df <- data.frame(
+  Date = date_seq,
+  Duration = as.numeric(ts_data)
+)
+
+ggplot(df, aes(x = Date, y = Duration)) +
+  geom_line() +
+  labs(
+    title = "Daily Average Uber Trip Duration (2024)",
+    x = "Month",
+    y = "Average Duration (minutes)"
+  ) +
+  scale_x_date(
+    date_breaks = "1 month",
+    date_labels = "%b"
+  ) +
+  theme_minimal()
 ```
 ## Plot Highlighting Weekends and Holidays
 
@@ -76,7 +93,7 @@ ggplot(data, aes(x = pickup_date, y = avg_duration_min)) +
   ) +
   labs(
     title = "Daily Average Trip Duration (2024)",
-    x = "Date", y = "Average Duration (minutes)",
+    x = "Month", y = "Average Duration (minutes)",
     color = "Day"
   ) +
   theme_minimal() +
