@@ -18,12 +18,16 @@ jobs:
 
       - name: Zip project files
         run: |
-          mkdir upload
-          cp -r finalproject upload/
+          mkdir -p upload/finalproject/code
+          mkdir -p upload/finalproject/data
+          mkdir -p upload/finalproject/docs
+
+          cp finalproject/code/finalproject.qmd upload/finalproject/code/finalproject.qmd
+          cp finalproject/code/finalproject.ipynb upload/finalproject/code/finalproject.ipynb
+          cp finalproject/data/finalproject.csv upload/finalproject/data/finalproject.csv
+          cp finalproject/docs/finalproject-report.pdf upload/finalproject/docs/finalproject-report.pdf
+
           cd upload
-          rm -f ./docs/finalproject-report.tex
-          rm -f ./docs/finalproject-report.bib
-          rm -rf ./docs/images
           zip -r finalproject.zip finalproject
           cd ..
 
