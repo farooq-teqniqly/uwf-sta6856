@@ -8,17 +8,30 @@
 \usepackage{ulem}
 \usepackage{booktabs}
 
-\lstset{
-    language=R,                  % Specify R as the language
-    basicstyle=\ttfamily,        % Use monospaced font for code
-    keywordstyle=\color{blue},   % Color for keywords
-    commentstyle=\color{gray},   % Color for comments
-    stringstyle=\color{red},     % Color for strings
-    numbers=left,                % Line numbers on the left
-    numberstyle=\tiny\color{gray}, % Style for line numbers
-    stepnumber=1,                % Number every line
-    frame=single,                % Frame around the code
-    breaklines=true              % Enable line breaking
+\lstdefinestyle{rstyle}{
+    language=R,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{red},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    stepnumber=1,
+    frame=single,
+    breaklines=true
+}
+
+\lstdefinestyle{pystyle}{
+    language=Python,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{teal},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    stepnumber=1,
+    frame=single,
+    breaklines=true
 }
 
 \graphicspath{{finalproject/images/}}
@@ -224,6 +237,135 @@ However, the study has several limitations. The univariate ARIMA model focuses s
 Future work could include incorporating a multivariate approach to examine the relationships between trip duration, trip count, and distance. More granular models (for example, hourly data) or spatial analysis could also reveal deeper insights into congestion dynamics across neighborhoods.
 
 In conclusion, this project demonstrates the feasibility and value of using large-scale ride-hailing data for time-series analysis. The findings support the use of predictive models to anticipate congestion trends and could inform urban planning, fleet management, or dynamic pricing strategies.
+
+\appendix
+\section{PySpark Preprocessing Code}
+\label{appendix:pyspark}
+
+The following PySpark script was used to preprocess over 150 million records from the NYC FHV dataset and compute the average daily trip durations.
+
+First, the parquet file is loaded (Listing ~\ref{lst:pyspark_load}).
+
+\begin{lstlisting}[style=pystyle, caption={Load FHV parquet file code}, label={lst:pyspark_load}]
+!pip install pyspark
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, when, to_date, avg, round
+
+spark = SparkSession.builder.master("local[*]").appName("FHV-ts-project").getOrCreate()
+
+data_directory = "/content/drive/MyDrive/datasets/nyc-taxi/"
+df = spark.read.format("parquet").option("recursiveFileLookup", "true").load(data_directory)
+
+\end{lstlisting}
+
+Derived columns are added for the duration of the trip in minutes and the average speed (Listing ~\ref{lst:pyspark_derived_cols}).
+
+\begin{lstlisting}[style=pystyle, caption={Adding derived columns code}, label={lst:pyspark_derived_cols}]
+
+df = df.withColumn("trip_duration_min", col("trip_time") / 60)
+df = df.withColumn("avg_speed_mph", (col("trip_miles") / (col("trip_time") / 3600)))
+
+\end{lstlisting}
+
+The data is then cleaned (Listing ~\ref{lst:pyspark_cleaning}):
+\begin{itemize}
+    \item Trips with zero or negative trip durations are removed.
+    \item Outliers are removed: \begin{itemize}
+        \item Trips longer than 2 hours and shorter than 1 minute.
+        \item Trips longer than 100 miles and less than 0.1 miles.
+        \item Average speed of greater than 80 mph and less than 1 mph.
+    \end{itemize}
+    
+\end{itemize}
+
+\begin{lstlisting}[style=pystyle, caption={Data cleaning code}, label={lst:pyspark_cleaning}]
+
+df_clean = df.filter(
+    (col("trip_duration_min") > 0) &
+    (col("trip_miles") > 0) &
+    (col("avg_speed_mph") > 0)
+)
+
+df_clean = df_clean.filter(
+    (col("trip_duration_min") <= 120) &
+    (col("trip_duration_min") >= 1) &
+    (col("trip_miles") <= 100) &
+    (col("trip_miles") >= 0.1) &
+    (col("avg_speed_mph") <= 80) &
+    (col("avg_speed_mph") >= 1)
+)
+\end{lstlisting}
+
+The outliers are then removed (Listing ~\ref{lst:pyspark_outliers}).
+
+\begin{lstlisting}[style=pystyle, caption={Removing outliers code}, label={lst:pyspark_outliers}]
+
+columns_to_check = ["trip_duration_min", "trip_miles", "avg_speed_mph"]
+iqr_dict = {}
+
+for col_name in columns_to_check:
+    q1, q3 = df_clean.approxQuantile(col_name, [0.25, 0.75], 0.01)
+    iqr = q3 - q1
+    iqr_dict[col_name] = (q1, q3, iqr)
+    print(f"IQR for {col_name}: {iqr_dict[col_name][2]}")
+    print(f"  Q1 for {col_name}: {iqr_dict[col_name][0]}")
+    print(f"  Q3 for {col_name}: {iqr_dict[col_name][1]}")
+
+iqr_duration = iqr_dict["trip_duration_min"][2]
+iqr_miles = iqr_dict["trip_miles"][2]
+iqr_speed = iqr_dict["avg_speed_mph"][2]
+
+iqr_factor = 1.5
+
+iqr_duration_15 = iqr_factor * iqr_duration
+iqr_miles_15 = iqr_factor * iqr_miles
+iqr_speed_15 = iqr_factor * iqr_speed
+
+duration_upper = iqr_dict["trip_duration_min"][1] + iqr_duration_15
+miles_upper = iqr_dict["trip_miles"][1] + iqr_miles_15
+speed_upper = iqr_dict["avg_speed_mph"][1] + iqr_speed_15
+
+df_final = df_clean.filter(
+    (col("trip_duration_min") <= duration_upper) &
+    (col("trip_miles") <= miles_upper) &
+    (col("avg_speed_mph") <= speed_upper)
+)
+)
+\end{lstlisting}
+
+Keep only Uber trips (Listing ~\ref{lst:pyspark_uber}).
+
+\begin{lstlisting}[style=pystyle, caption={Filter to Uber trips code}, label={lst:pyspark_uber}]
+df_uber = df.filter(df["hvfhs_license_num"] == "HV0003")
+\end{lstlisting}
+
+Then the average trip duration per day is calculated (Listing ~\ref{lst:pyspark_avg_duration}).
+
+\begin{lstlisting}[style=pystyle, caption={Calculate average daily duration code}, label={lst:pyspark_avg_duration}]
+
+df_uber = df_uber.withColumn("pickup_date", to_date(col("pickup_datetime")))
+
+df_daily_avg = df_uber.groupBy("pickup_date") \
+                   .agg(avg("trip_duration_min").alias("avg_duration_min")) \
+                   .orderBy("pickup_date")
+
+df_daily_avg = df_daily_avg.withColumn("avg_duration_min", round("avg_duration_min"))
+
+\end{lstlisting}
+
+Finally, the cleaned time series dataset is saved in a CSV file (Listing ~\ref{lst:pyspark_csv}). The resulting CSV file contains two columns - the pickup date and average trip duration for that day. 
+
+\begin{lstlisting}[style=pystyle, caption={Saving time series data code}, label={lst:pyspark_csv}]
+
+final_path = "/content/drive/MyDrive/datasets/fhvhv_tripdata_2024_uber_timeseries.csv"
+
+df_daily_avg.select("pickup_date", "avg_duration_min") \
+         .coalesce(1) \
+         .write.option("header", True) \
+         .csv(final_path)
+
+\end{lstlisting}
+
 
 
 
