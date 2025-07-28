@@ -146,7 +146,7 @@ checkresiduals(auto_fit)
 ## 14-Day Forecast
 ```{r}
 h <- 14
-forecast_result <- forecast(fit, h = h)
+forecast_result <- forecast(auto_fit, h = h)
 ```
 
 ## 14-Day Forecast Plot
