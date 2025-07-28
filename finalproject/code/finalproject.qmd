@@ -115,8 +115,7 @@ auto_fit <- auto.arima(ts_data)
 model_comparison <- data.frame(
   Model = c("ARIMA(1,1,1)", "ARIMA(2,1,1)", "ARIMA(3,1,2)"),
   AIC = c(AIC(fit_1), AIC(fit_2), AIC(auto_fit)),
-  BIC = c(BIC(fit_1), BIC(fit_2), BIC(auto_fit)),
-  LogLikelihood = c(logLik(fit_1), logLik(fit_2), logLik(auto_fit))
+  BIC = c(BIC(fit_1), BIC(fit_2), BIC(auto_fit))
 )
 print(model_comparison)
 ```
