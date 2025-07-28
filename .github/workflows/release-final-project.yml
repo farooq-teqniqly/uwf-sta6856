@@ -27,4 +27,4 @@ jobs:
           tag_name: ${{ github.ref_name }}
           files: final-project.zip
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.pat-uwf-sta-6856 }}
