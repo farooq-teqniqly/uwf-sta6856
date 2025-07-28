@@ -1,0 +1,30 @@
+name: Release Automation
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Zip project files
+        run: |
+          mkdir output
+          cp ./finalproject/docs/finalproject-report.pdf ./finalproject/code/finalproject.qmd ./finalproject/data/finalproject.csv output/
+          cd output
+          zip ../final-project.zip *
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Release ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          files: final-project.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
