@@ -601,7 +601,7 @@ df_daily_avg = df_daily_avg.withColumn("avg_duration_min", round("avg_duration_m
 
 \end{lstlisting}
 
-Finally, the cleaned time series dataset is saved in a CSV file (Listing ~\ref{lst:pyspark_csv}). The resulting CSV file contains two columns, the pickup date and average trip duration for that day.
+Finally, the cleaned time series dataset is saved in a CSV file (Listing ~\ref{lst:pyspark_csv}). The resulting CSV file contains two columns, the pickup date, and average trip duration for that day.
 
 \begin{lstlisting}[style=pystyle, caption={Saving time series data code}, label={lst:pyspark_csv}]
 
@@ -614,11 +614,7 @@ df_daily_avg.select("pickup_date", "avg_duration_min") \
 
 \end{lstlisting}
 
-
-
-
-
 \bibliographystyle{plain}
-\bibliography{finalproject/docs/refs}
+\bibliography{finalproject/docs/finalproject}
 
 \end{document}
