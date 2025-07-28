@@ -103,13 +103,28 @@ acf(ts_data, main = "ACF of Daily Average Duration", lag.max = 150)
 pacf(ts_data, main = "PACF of Daily Average Duration", lag.max = 150)
 ```
 
-## Model Fitting
+## Model Selection and Diagnostics
 ```{r}
 library(forecast)
 diff_data <- diff(ts_data)
-fit <- auto.arima(ts_data)
-summary(fit)
-checkresiduals(fit)
+
+fit_1 <- Arima(ts_data, order = c(1,1,1))
+fit_2 <- Arima(ts_data, order = c(2,1,1))
+auto_fit <- auto.arima(ts_data)
+
+model_comparison <- data.frame(
+  Model = c("ARIMA(1,1,1)", "ARIMA(2,1,1)", "ARIMA(3,1,2)"),
+  AIC = c(AIC(fit_1), AIC(fit_2), AIC(auto_fit)),
+  BIC = c(BIC(fit_1), BIC(fit_2), BIC(auto_fit)),
+  LogLikelihood = c(logLik(fit_1), logLik(fit_2), logLik(auto_fit))
+)
+print(model_comparison)
+```
+## Check Residuals
+```{r}
+checkresiduals(fit_1)
+checkresiduals(fit_2)
+checkresiduals(auto_fit)
 ```
 
 ## 14-Day Forecast
