@@ -117,9 +117,86 @@ Although the ADF test returned a $p$-value of 0.04612, suggesting stationarity a
 
 \section{Secondary Analysis and Modeling}
 
-\subsection{Model Fitting}
 
-To model the average daily Uber trip duration, we applied the \texttt{auto.arima()} function from the \texttt{forecast} package in R, which identified an ARIMA(3,1,2) model as the best fit (Figure \ref{fig:arima_coefficients}, Listing~\ref{lst:r_arima}).
+\subsection{Model Selection and Diagnostics}
+
+To identify the most appropriate model for forecasting the average duration of Uber trips, we conducted a comprehensive model selection and diagnostic process.
+
+\subsection{Model Specification}
+
+We first applied first-order differencing to the original time series to achieve stationarity, confirmed visually and through the ADF test. The ACF PACF plots were then examined to guide the selection of autoregressive (AR) and moving average (MA) terms. Based on these tools and the output of \texttt{auto.arima}, we selected the following candidate models for further analysis:
+
+\begin{itemize}
+    \item ARIMA(1,1,1)
+    \item ARIMA(2,1,1)
+    \item ARIMA(3,1,2)
+\end{itemize}
+
+\subsection{Model Estimation and Comparison}
+
+Each model was fitted and their performance were evaluated using the Akaike Information Criterion (AIC) and Bayesian Information Criterion (BIC) (Listing ~\ref{lst:r_arima_model}). The results are summarized in Table~\ref{tab:model_comparison}.
+
+\begin{table}[h!]
+\centering
+\caption{Model comparison using AIC and BIC}
+\label{tab:model_comparison}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Model} & \textbf{AIC} & \textbf{BIC} \\
+\midrule
+ARIMA(1,1,1) & 1028.02 & 1039.72  \\
+ARIMA(2,1,1) & 1019.60 & 1035.20  \\
+ARIMA(3,1,2) & \textbf{962.08} & \textbf{985.48}  \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+ARIMA(3,1,2) had the lowest AIC and BIC values, suggesting that it is the most parsimonious and best-fitting model among the three.
+
+\subsection{Diagnostic Checking}
+
+We conducted residual diagnostics for each model, including residual plots (Figures~\ref{fig:arima111_residuals}, ~\ref{fig:arima211_residuals}, and ~\ref{fig:arima_auto_residuals}  and the Ljung-Box test for autocorrelation (Listing ~\ref{lst:r_arima_resid}). Table~\ref{tab:ljungbox} presents the results of the Ljung box tests.
+
+\begin{figure}
+  \includegraphics[width=\textwidth]{finalproject/images/arima111_resid.png}
+  \caption{Residual diagnostics for ARIMA(1,1,1): time plot (top), ACF of residuals (bottom left), and histogram with normal distribution curve (bottom right).}
+  \label{fig:arima111_residuals}
+\end{figure}
+
+\begin{figure}
+  \includegraphics[width=\textwidth]{finalproject/images/arima211_resid.png}
+  \caption{Residual diagnostics for ARIMA(2,1,1): time plot (top), ACF of residuals (bottom left), and histogram with normal distribution curve (bottom right).}
+  \label{fig:arima211_residuals}
+\end{figure}
+
+\begin{figure}
+  \includegraphics[width=\textwidth]{finalproject/images/arima_auto_resid.png}
+  \caption{Residual diagnostics for ARIMA(3,1,2): time plot (top), ACF of residuals (bottom left), and histogram with normal distribution curve (bottom right).}
+  \label{fig:arima_auto_residuals}
+\end{figure}
+
+\begin{table}[h!]
+\centering
+\caption{Ljung-Box test results on model residuals}
+\label{tab:ljungbox}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Model} & \textbf{Q* Statistic} & \textbf{df} & \textbf{p-value} \\
+\midrule
+ARIMA(1,1,1) & 810.27 & 71 & $< 2.2 \times 10^{-16}$ \\
+ARIMA(2,1,1) & 477.14 & 70 & $< 2.2 \times 10^{-16}$ \\
+ARIMA(3,1,2) & 88.01 & 68 & 0.05184 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The ARIMA(3,1,2) model was the only one to pass the Ljung-Box test at significance level $\alpha=0.05$, with a $p$-value of 0.05184, indicating no significant residual autocorrelation. The residuals also appeared to be normally distributed. ACF plots of the residuals confirmed the absence of strong autocorrelation.
+
+\subsection{Model Selection Summary}
+
+Based on information criterion, residual diagnostics, and parsimony, we selected ARIMA(3,1,2) as the final model for forecasting. It captures the temporal dependencies in the data and produces uncorrelated, approximately normal residuals, making it suitable for short-term prediction.
+
+
 
 \begin{figure}[ht]
 \centering
@@ -135,16 +212,6 @@ Coefficients:
 \end{figure}
 
 The model includes three autoregressive terms (AR) and two moving average terms (MA), with one order of differencing. The residuals from this model were analyzed using diagnostic plots and the Ljung-Box test to assess the adequacy of the model.
-
-\begin{figure}
-  \includegraphics[width=\textwidth]{finalproject/images/arima-residuals.png}
-  \caption{Residual diagnostics for ARIMA(3,1,2): time plot (top), ACF of residuals (bottom left), and histogram with normal distribution curve (bottom right).}
-  \label{fig:arima_residuals}
-\end{figure}
-
-The residual plots (Figure~\ref{fig:arima_residuals}, Listing~\ref{lst:r_arima_resid}) suggest that the residuals are centered around zero with constant variance and no strong autocorrelation. The ACF plot of residuals confirms the absence of significant autocorrelation at most lags.
-
-The Ljung-Box test (Listing~\ref{lst:r_arima_resid}) further supports the adequacy of the model ($p = 0.05184$). Since the $p$-value is slightly above 0.05, we do not reject the null hypothesis that the residuals are white noise. Therefore, a first differencing has resulted in stationarity.
 
 \subsection{Fitted Model Equation}
 
@@ -162,8 +229,6 @@ Y_t = Y_{t-1}
 \end{multline}
 
 where \( Y_t \) denotes the average trip duration at time \( t \) and \( \varepsilon_t \) is a white noise error term.
-
-The residual diagnostics and statistical tests provide evidence that this model is a reasonable choice for forecasting the average daily trip durations (Figure \ref{fig:arima_residuals}).
 
 \subsection{Interpretation of the ARIMA Model}
 
@@ -216,7 +281,7 @@ Date & Forecast & Lo 80 & Hi 80 & Lo 95 & Hi 95 \\
 \end{tabular}
 \end{table}
 
-Residual diagnostics (Figure~\ref{fig:forecast_diagnostics}, Listing~\ref{lst:r_forecast_resid}) indicate that residuals are approximately normally distributed and do not exhibit significant autocorrelation, as confirmed by the Ljung-Box test ($p = 0.0518$), suggesting that the model adequately captures the structure in the data.
+Residual diagnostics (Figure~\ref{fig:forecast_diagnostics}, Listing~\ref{lst:r_forecast_resid}) indicate that the residuals are approximately normally distributed and do not exhibit significant autocorrelation, as confirmed by the Ljung-Box test ($p = 0.0518$), suggesting that the model adequately captures the structure in the data.
 
 \begin{figure}
   \includegraphics[width=\textwidth]{finalproject/images/forecast-residuals.png}
@@ -229,7 +294,7 @@ Residual diagnostics (Figure~\ref{fig:forecast_diagnostics}, Listing~\ref{lst:r_
 
 This project set out to analyze temporal trends in Uber trip durations using New York City's High-Volume For-Hire Vehicle (FHV) dataset for 2024. The analysis focused on daily average trip durations and applied time series modeling techniques to identify patterns and forecast future behavior.
 
-The ARIMA(3,1,2) model fitted to the data demonstrated a reasonably good fit, with low residual autocorrelation and a Ljung-Box test $p$-value close to the significance threshold. The model successfully captured temporal dynamics and was informed by stationarity checks, ACF, and PACF analysis. The results indicate that the duration of Uber rides exhibits regular fluctuations, with weekends and most holidays showing elevated travel times, likely due to increased congestion or changes in demand patterns.
+The ARIMA(3,1,2) model fitted to the data demonstrated a reasonably good fit, with low residual autocorrelation and a Ljung-Box test $p$-value close to significance level $\alpha=0.05$. The model successfully captured temporal dynamics and was informed by stationarity checks, ACF, PACF, AIC, and BIC analysis. The results indicate that the duration of Uber rides exhibits regular fluctuations, with weekends and most holidays showing elevated travel times, likely due to increased congestion or changes in demand patterns.
 
 The fitted ARIMA model was also used to generate a 14-day forecast of average trip durations. The forecast suggests continued fluctuations with point predictions that ranged from approximately 18 to 19 minutes. The 95\% prediction intervals provide a reasonable range of uncertainty, with the lower bounds staying above 16 minutes and the upper bounds exceeding 21 minutes at times. This demonstrates the model's utility for short-term forecasting of ride duration trends.
 
@@ -345,8 +410,27 @@ fit <- auto.arima(ts_data)
 summary(fit)
 \end{lstlisting}
 
-\begin{lstlisting}[style=rstyle, caption={ ARIMA Model Residual Plots}, label={lst:r_arima_resid}]
-checkresiduals(fit)
+\begin{lstlisting}[style=rstyle, caption={ Model Selection and Diagnostics}, label={lst:r_arima_model}]
+library(forecast)
+diff_data <- diff(ts_data)
+
+fit_1 <- Arima(ts_data, order = c(1,1,1))
+fit_2 <- Arima(ts_data, order = c(2,1,1))
+auto_fit <- auto.arima(ts_data)
+
+model_comparison <- data.frame(
+  Model = c("ARIMA(1,1,1)", "ARIMA(2,1,1)", "ARIMA(3,1,2)"),
+  AIC = c(AIC(fit_1), AIC(fit_2), AIC(auto_fit)),
+  BIC = c(BIC(fit_1), BIC(fit_2), BIC(auto_fit)),
+  LogLikelihood = c(logLik(fit_1), logLik(fit_2), logLik(auto_fit))
+)
+print(model_comparison)
+\end{lstlisting}
+
+\begin{lstlisting}[style=rstyle, caption={ Model Selection and Diagnostics}, label={lst:r_arima_resid}]
+checkresiduals(fit_1)
+checkresiduals(fit_2)
+checkresiduals(auto_fit)
 \end{lstlisting}
 
 \begin{lstlisting}[style=rstyle, caption={ 14-day Forecast}, label={lst:r_forecast}]
@@ -499,7 +583,7 @@ df_daily_avg = df_daily_avg.withColumn("avg_duration_min", round("avg_duration_m
 
 \end{lstlisting}
 
-Finally, the cleaned time series dataset is saved in a CSV file (Listing ~\ref{lst:pyspark_csv}). The resulting CSV file contains two columns - the pickup date and average trip duration for that day.
+Finally, the cleaned time series dataset is saved in a CSV file (Listing ~\ref{lst:pyspark_csv}). The resulting CSV file contains two columns, the pickup date and average trip duration for that day.
 
 \begin{lstlisting}[style=pystyle, caption={Saving time series data code}, label={lst:pyspark_csv}]
 
