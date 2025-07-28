@@ -24,6 +24,7 @@ jobs:
 
           cp finalproject/code/finalproject.qmd upload/finalproject/code/finalproject.qmd
           cp finalproject/code/finalproject.ipynb upload/finalproject/code/finalproject.ipynb
+          cp finalproject/code/finalproject-rcode-output.pdf upload/finalproject/code/finalproject-rcode-output.pdf
           cp finalproject/data/finalproject.csv upload/finalproject/data/finalproject.csv
           cp finalproject/docs/finalproject-report.pdf upload/finalproject/docs/finalproject-report.pdf
 
