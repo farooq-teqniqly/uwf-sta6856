@@ -47,10 +47,12 @@
 
 \maketitle
 
+\tableofcontents
+
 \section{Introduction}
 Urban mobility has undergone a transformative shift with the proliferation of ride-hailing services such as Uber. In dense metropolitan areas such as New York City, these services generate massive amounts of data that can reveal important patterns in travel behavior. This project proposes a time series analysis of average daily Uber trip durations in New York City throughout the year 2024, using publicly available high-volume for-hire vehicle (FHV) trip data.
 
-The data set is sourced from the NYC Taxi and Limousine Commission (TLC) and contains more than 150 million records for 2024 alone. For the purpose of this analysis, a subset of the data has been preprocessed using PySpark to compute the average duration of Uber trips per day, resulting in 365 data points. Time series modeling and visualization were performed exclusively in R. The data set is accessible through the NYC TLC portal\cite{nyctlc2024}.
+The dataset is sourced from the NYC Taxi and Limousine Commission (TLC) and contains more than 200 million records for 2024 alone. For the purpose of this analysis, a subset of the data has been preprocessed using PySpark to compute the average duration of Uber trips per day, resulting in 365 data points. Time series modeling and visualization were performed exclusively in R. The dataset is accessible through the NYC TLC portal\cite{nyctlc2024}.
 
 The main objective of this project is to explore the temporal behavior of Uber trip durations and apply time series modeling to understand and forecast future values. Specific goals include examining stationarity, identifying appropriate models through diagnostics, and evaluating the accuracy of forecasts. A review of previous research indicates that ride-hailing data have been used extensively for congestion, demand prediction, and fleet optimization, but less so for temporal duration modeling at a daily resolution.
 
@@ -58,12 +60,15 @@ Two references guiding this work are (1) Tandon et al. (2024), which evaluates t
 
 This study contributes by applying time series methods to a large-scale, real-world dataset to understand trends and variability in urban travel times.
 
+All R code used in the analysis is provided in Appendix~\ref{appendix:rcode}. References to code listings (e.g., Listing~\ref{lst:load-ts}) throughout this paper correspond to entries in the Appendix.
+
+
 \section{Preliminary Analysis}
 
 \subsection{Data Preparation and Description}
-The dataset used in this study consists of the average daily trip duration (in minutes) for Uber trips in New York City throughout 2024. This time series was constructed by aggregating more than 150 million ride records published by the New York Taxi and Limousine Commission. A PySpark pipeline was used to compute the average duration per day, resulting in a time series of 366 observations (one for each day in the leap year 2024).
+The dataset used in this study consists of the average daily trip duration (in minutes) for Uber trips in New York City throughout 2024. This time series was constructed by aggregating more than 200 million ride records published by the New York Taxi and Limousine Commission. A PySpark pipeline was used to compute the average duration per day, resulting in a time series of 366 observations (one for each day in the leap year 2024). The complete code is included in Appendix~\ref{appendix:pyspark}.
 
-The decision to use the average daily trip duration as the primary variable was motivated by both practical and analytical considerations. From a practical point of view, the original dataset comprises more than 150 million individual trip records, which would pose significant computational challenges for time series modeling and visualization. Aggregating to daily averages drastically reduces the data size, while preserving temporal patterns of interest. 
+The decision to use the average daily trip duration as the primary variable was motivated by both practical and analytical considerations. From a practical point of view, the original dataset comprises more than 200 million individual trip records, which would pose significant computational challenges for time series modeling and visualization. Aggregating to daily averages drastically reduces the data size, while preserving temporal patterns of interest. 
 
 Analytically, daily aggregation smooths out short-term noise (e.g., from trip-level variability) and highlights broader trends, such as weekly or seasonal cycles. This level of granularity strikes a balance between detail and explanatory power, making it suitable for time-series methods such as ARIMA. It also allows for meaningful comparisons between days, making the results more actionable to understand congestion and mobility behavior.
 
@@ -90,7 +95,7 @@ In an attempt to expose more patterns, a second version of the time series plot 
 To determine whether the daily average Uber trip duration series is stationary, we performed the Augmented Dickey-Fuller (ADF) test. The ADF test yielded a $p$-value of 0.04612. Because the $p$-value is less than 0.05, we reject the null hypothesis at the significance level $\alpha$=0.05. Therefore, there is statistical evidence to suggest that the time series is stationary.
 
 \subsection{Autocorrelation and Partial Autocorrelation Analysis}
-The ACF plot (Figure~\ref{fig:acf_plot}) shows a slow and gradual decline, consistent with a nonstationary series. This pattern suggests the presence of a trend and the need to differentiate the series to induce stationarity. Significant autocorrelation at multiple lags may also indicate latent seasonality.
+The ACF plot (Figure~\ref{fig:acf_plot}) shows a slow and gradual decline, consistent with a non-stationary series. This pattern suggests the presence of a trend and the need to differentiate the series to induce stationarity. Significant autocorrelation at multiple lags may also indicate latent seasonality.
 
 \begin{figure}
   \includegraphics[width=\textwidth]{finalproject/images/acf-plot.png}
@@ -107,7 +112,7 @@ The PACF plot (Figure~\ref{fig:pacf_plot}) shows a large spike at lag 1, followe
 \end{figure}
 
 \subsection{Reconciling ADF and ACF/PACF Findings}
-Although the ADF test returned a $p$-value of 0.04612, suggesting stationarity at significance level $\alpha$=0.05, the ACF and PACF plots exhibit patterns indicative of nonstationarity, including a slow decay in autocorrelation. This discrepancy implies that the series may be only marginally stationary or trend-stationary. To address this, further differencing is warranted in the model's subsequent development.
+Although the ADF test returned a $p$-value of 0.04612, suggesting stationarity at significance level $\alpha$=0.05, the ACF and PACF plots exhibit patterns indicative of non-stationarity, including a slow decay in autocorrelation. This discrepancy implies that the series may be only marginally stationary or trend-stationary. To address this, further differencing is warranted in the model's subsequent development.
 
 
 \section{Secondary Analysis and Modeling}
@@ -129,7 +134,7 @@ Coefficients:
 \caption{Estimated ARIMA(3,1,2) model coefficients.}
 \end{figure}
 
-The model includes three autoregressive (AR) terms and two moving average (MA) terms, with one order of differencing. The residuals from this model were analyzed using diagnostic plots and the Ljung-Box test to assess the adequacy of the model.
+The model includes three autoregressive terms (AR) and two moving average terms (MA), with one order of differencing. The residuals from this model were analyzed using diagnostic plots and the Ljung-Box test to assess the adequacy of the model.
 
 \begin{figure}
   \includegraphics[width=\textwidth]{finalproject/images/arima-residuals.png}
@@ -226,27 +231,34 @@ This project set out to analyze temporal trends in Uber trip durations using New
 
 The ARIMA(3,1,2) model fitted to the data demonstrated a reasonably good fit, with low residual autocorrelation and a Ljung-Box test $p$-value close to the significance threshold. The model successfully captured temporal dynamics and was informed by stationarity checks, ACF, and PACF analysis. The results indicate that the duration of Uber rides exhibits regular fluctuations, with weekends and most holidays showing elevated travel times, likely due to increased congestion or changes in demand patterns.
 
-The fitted ARIMA model was also used to generate a 14-day forecast of average trip durations. The forecast suggests continued fluctuations with point predictions ranging from approximately 18 to 19 minutes. The 95\% prediction intervals provide a reasonable range of uncertainty, with the lower bounds staying above 16 minutes and the upper bounds exceeding 21 minutes at times. This demonstrates the model's utility for short-term forecasting of ride duration trends.
+The fitted ARIMA model was also used to generate a 14-day forecast of average trip durations. The forecast suggests continued fluctuations with point predictions that ranged from approximately 18 to 19 minutes. The 95\% prediction intervals provide a reasonable range of uncertainty, with the lower bounds staying above 16 minutes and the upper bounds exceeding 21 minutes at times. This demonstrates the model's utility for short-term forecasting of ride duration trends.
 
 Importantly, the structure of the ARIMA model provides interpretable insights. The autoregressive (AR) terms reflect the persistence of duration trends over three days, while the moving average (MA) terms capture the impact of recent anomalies such as sudden spikes or drops in trip duration due to unpredictable events such as traffic disruptions or weather. The presence of two MA terms allows the model to learn from forecasting errors over the past two days, making the forecasts more adaptive and robust to short-term volatility.
 
-One strength of the analysis was the use of big data tools (PySpark) to preprocess more than 150 million records into a manageable time series format. This preprocessing enabled meaningful aggregation and reduced the computational burden on R, which was used for modeling and visualization. Visualizing holidays and weekends also helped contextualize anomalies and recurring patterns in the data.
+One strength of the analysis was the use of big data tools (PySpark) to preprocess more than 200 million records into a manageable time series format. This preprocessing enabled meaningful aggregation and reduced the computational burden on R, which was used for modeling and visualization. Visualizing holidays and weekends also helped contextualize anomalies and recurring patterns in the data.
 
-However, the study has several limitations. The univariate ARIMA model focuses solely on past values and past errors in average trip duration, without explicitly incorporating external variables such as weather conditions, traffic incidents, or special events. Although moving average terms help absorb recent unexplained anomalies, they do not directly account for known external factors that could improve predictive accuracy. Additionally, aggregating data at the daily level smooths over intraday variations, potentially obscuring important temporal dynamics. Finally, the data set includes only Uber trips, which may limit the generalization of the findings to the broader transportation or ride-hailing ecosystem.
+However, the study has several limitations. The univariate ARIMA model focuses solely on past values and past errors in average trip duration, without explicitly incorporating external variables such as weather conditions, traffic incidents, or special events. Although moving average terms help absorb recent unexplained anomalies, they do not directly account for known external factors that could improve predictive accuracy. Additionally, aggregating data at the daily level smooths over intraday variations, potentially obscuring important temporal dynamics. Finally, the dataset includes only Uber trips, which may limit the generalization of the findings to the broader transportation or ride-hailing ecosystem.
 
 Future work could include incorporating a multivariate approach to examine the relationships between trip duration, trip count, and distance. More granular models (for example, hourly data) or spatial analysis could also reveal deeper insights into congestion dynamics across neighborhoods.
 
 In conclusion, this project demonstrates the feasibility and value of using large-scale ride-hailing data for time-series analysis. The findings support the use of predictive models to anticipate congestion trends and could inform urban planning, fleet management, or dynamic pricing strategies.
 
+
 \appendix
+
+\section{R Time Series Modeling and Visualization Code}
+\label{appendix:rcode}
+TODO
+
+
 \section{PySpark Preprocessing Code}
 \label{appendix:pyspark}
 
-The following PySpark script was used to preprocess over 150 million records from the NYC FHV dataset and compute the average daily trip durations.
+The following PySpark script was used to preprocess over 200 million records from the NYC FHV dataset and compute the average daily trip durations.
 
 First, the parquet file is loaded (Listing ~\ref{lst:pyspark_load}).
 
-\begin{lstlisting}[style=pystyle, caption={Load FHV parquet file code}, label={lst:pyspark_load}]
+\begin{lstlisting}[style=pystyle, caption={Loading FHV Data from Parquet Files}, label={lst:pyspark_load}]
 !pip install pyspark
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, when, to_date, avg, round
@@ -260,7 +272,7 @@ df = spark.read.format("parquet").option("recursiveFileLookup", "true").load(dat
 
 Derived columns are added for the duration of the trip in minutes and the average speed (Listing ~\ref{lst:pyspark_derived_cols}).
 
-\begin{lstlisting}[style=pystyle, caption={Adding derived columns code}, label={lst:pyspark_derived_cols}]
+\begin{lstlisting}[style=pystyle, caption={Deriving Trip Duration and Average Speed Columns}, label={lst:pyspark_derived_cols}]
 
 df = df.withColumn("trip_duration_min", col("trip_time") / 60)
 df = df.withColumn("avg_speed_mph", (col("trip_miles") / (col("trip_time") / 3600)))
@@ -353,7 +365,7 @@ df_daily_avg = df_daily_avg.withColumn("avg_duration_min", round("avg_duration_m
 
 \end{lstlisting}
 
-Finally, the cleaned time series dataset is saved in a CSV file (Listing ~\ref{lst:pyspark_csv}). The resulting CSV file contains two columns - the pickup date and average trip duration for that day. 
+Finally, the cleaned time series dataset is saved in a CSV file (Listing ~\ref{lst:pyspark_csv}). The resulting CSV file contains two columns - the pickup date and average trip duration for that day.
 
 \begin{lstlisting}[style=pystyle, caption={Saving time series data code}, label={lst:pyspark_csv}]
 
@@ -365,6 +377,7 @@ df_daily_avg.select("pickup_date", "avg_duration_min") \
          .csv(final_path)
 
 \end{lstlisting}
+
 
 
 
