@@ -9,7 +9,7 @@ editor: source
 
 
 ```{r}
-data <- read.csv(file.path(getwd(), "../data", "fhvhv_tripdata_2024_uber_timeseries.csv"))
+data <- read.csv(file.path(getwd(), "../data", "finalproject.csv"))
 ts_data <- ts(data$avg_duration_min, frequency = 366, start = c(2024, 1))
 ```
 
