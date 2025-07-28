@@ -5,6 +5,9 @@ on:
     tags:
       - "final-project-v*"
 
+permissions:
+  contents: write
+
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -27,4 +30,4 @@ jobs:
           tag_name: ${{ github.ref_name }}
           files: final-project.zip
         env:
-          GITHUB_TOKEN: ${{ secrets.pat-uwf-sta-6856 }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN  }}
