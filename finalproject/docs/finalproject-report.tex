@@ -124,7 +124,7 @@ To identify the most appropriate model for forecasting the average duration of U
 
 \subsection{Model Specification}
 
-I first applied first-order differencing to the original time series to achieve stationarity, confirmed visually and through the ADF test. The ACF PACF plots were then examined to guide the selection of autoregressive (AR) and moving average (MA) terms. Based on these tools and the output of \texttt{auto.arima}, I selected the following candidate models for further analysis:
+I first applied first-order differencing to the original time series to achieve stationarity, confirmed visually and through the ADF test. The ACF and PACF plots were then examined to guide the selection of autoregressive (AR) and moving average (MA) terms. Based on these tools and the output of \texttt{auto.arima}, I selected the following candidate models for further analysis:
 
 \begin{itemize}
     \item ARIMA(1,1,1)
@@ -155,7 +155,7 @@ ARIMA(3,1,2) had the lowest AIC and BIC values, suggesting that it is the most p
 
 \subsection{Diagnostic Checking}
 
-I conducted residual diagnostics for each model, including residual plots (Figures~\ref{fig:arima111_residuals}, ~\ref{fig:arima211_residuals}, and ~\ref{fig:arima_auto_residuals}  and the Ljung-Box test for autocorrelation (Listing ~\ref{lst:r_arima_resid}). Table~\ref{tab:ljungbox} presents the results of the Ljung box tests.
+I conducted residual diagnostics for each model, including residual plots (Figures~\ref{fig:arima111_residuals}, ~\ref{fig:arima211_residuals}, and ~\ref{fig:arima_auto_residuals}  and the Ljung-Box test (Listing ~\ref{lst:r_arima_resid}). Table~\ref{tab:ljungbox} presents the results of the Ljung box tests.
 
 \begin{figure}
   \includegraphics[width=\textwidth]{finalproject/images/arima111_resid.png}
@@ -211,7 +211,7 @@ Coefficients:
 \caption{Estimated ARIMA(3,1,2) model coefficients.}
 \end{figure}
 
-The model includes three autoregressive terms (AR) and two moving average terms (MA), with one order of differencing. The residuals from this model were analyzed using diagnostic plots and the Ljung-Box test to assess the adequacy of the model.
+The model includes three autoregressive terms (AR) and two moving average terms (MA), with one order of differencing.
 
 \subsection{Fitted Model Equation}
 
