@@ -92,7 +92,7 @@ In an attempt to expose more patterns, a second version of the time series plot 
 \end{figure}
 
 \subsection{Stationarity Assessment}
-To determine whether the daily average Uber trip duration series is stationary, we performed the Augmented Dickey-Fuller (ADF) test (Listing ~\ref{lst:r_adf_test}). The ADF test yielded a $p$-value of 0.04612. Because the $p$-value is less than 0.05, we reject the null hypothesis at the significance level $\alpha$=0.05. Therefore, there is statistical evidence to suggest that the time series is stationary.
+To determine whether the daily average Uber trip duration series is stationary, I performed the Augmented Dickey-Fuller (ADF) test (Listing ~\ref{lst:r_adf_test}). The ADF test yielded a $p$-value of 0.04612. Because the $p$-value is less than 0.05, I reject the null hypothesis at the significance level $\alpha$=0.05. Therefore, there is statistical evidence to suggest that the time series is stationary.
 
 \subsection{Autocorrelation and Partial Autocorrelation Analysis}
 The ACF plot (Figure~\ref{fig:acf_plot}, Listing~\ref{lst:r_acf}) shows a slow and gradual decline, consistent with a non-stationary series. This pattern suggests the presence of a trend and the need to differentiate the series to induce stationarity. Significant autocorrelation at multiple lags may also indicate latent seasonality.
@@ -120,11 +120,11 @@ Although the ADF test returned a $p$-value of 0.04612, suggesting stationarity a
 
 \subsection{Model Selection and Diagnostics}
 
-To identify the most appropriate model for forecasting the average duration of Uber trips, we conducted a comprehensive model selection and diagnostic process.
+To identify the most appropriate model for forecasting the average duration of Uber trips, I conducted a comprehensive model selection and diagnostic process.
 
 \subsection{Model Specification}
 
-We first applied first-order differencing to the original time series to achieve stationarity, confirmed visually and through the ADF test. The ACF PACF plots were then examined to guide the selection of autoregressive (AR) and moving average (MA) terms. Based on these tools and the output of \texttt{auto.arima}, we selected the following candidate models for further analysis:
+I first applied first-order differencing to the original time series to achieve stationarity, confirmed visually and through the ADF test. The ACF PACF plots were then examined to guide the selection of autoregressive (AR) and moving average (MA) terms. Based on these tools and the output of \texttt{auto.arima}, I selected the following candidate models for further analysis:
 
 \begin{itemize}
     \item ARIMA(1,1,1)
@@ -155,7 +155,7 @@ ARIMA(3,1,2) had the lowest AIC and BIC values, suggesting that it is the most p
 
 \subsection{Diagnostic Checking}
 
-We conducted residual diagnostics for each model, including residual plots (Figures~\ref{fig:arima111_residuals}, ~\ref{fig:arima211_residuals}, and ~\ref{fig:arima_auto_residuals}  and the Ljung-Box test for autocorrelation (Listing ~\ref{lst:r_arima_resid}). Table~\ref{tab:ljungbox} presents the results of the Ljung box tests.
+I conducted residual diagnostics for each model, including residual plots (Figures~\ref{fig:arima111_residuals}, ~\ref{fig:arima211_residuals}, and ~\ref{fig:arima_auto_residuals}  and the Ljung-Box test for autocorrelation (Listing ~\ref{lst:r_arima_resid}). Table~\ref{tab:ljungbox} presents the results of the Ljung box tests.
 
 \begin{figure}
   \includegraphics[width=\textwidth]{finalproject/images/arima111_resid.png}
@@ -194,7 +194,7 @@ The ARIMA(3,1,2) model was the only one to pass the Ljung-Box test at significan
 
 \subsection{Model Selection Summary}
 
-Based on information criterion, residual diagnostics, and parsimony, we selected ARIMA(3,1,2) as the final model for forecasting. It captures the temporal dependencies in the data and produces uncorrelated, approximately normal residuals, making it suitable for short-term prediction.
+Based on information criterion, residual diagnostics, and parsimony, I selected ARIMA(3,1,2) as the final model for forecasting. It captures the temporal dependencies in the data and produces uncorrelated, approximately normal residuals, making it suitable for short-term prediction.
 
 
 
@@ -245,7 +245,7 @@ Together, these components allow the ARIMA model to capture both consistent temp
 
 \subsection{Forecasting}
 
-To evaluate the predictive utility of the fitted model, we generated a 14-day forecast using the ARIMA(3,1,2) model (Listing~\ref{lst:r_forecast}). Figure~\ref{fig:forecast_plot} shows the projected average trip duration along with the 80\% and 95\% confidence intervals (Listing~\ref{lst:r_forecast_plot}).
+To evaluate the predictive utility of the fitted model, I generated a 14-day forecast using the ARIMA(3,1,2) model (Listing~\ref{lst:r_forecast}). Figure~\ref{fig:forecast_plot} shows the projected average trip duration along with the 80\% and 95\% confidence intervals (Listing~\ref{lst:r_forecast_plot}).
 
 \begin{figure}
   \includegraphics[width=\textwidth]{finalproject/images/forecast-plot.png}
