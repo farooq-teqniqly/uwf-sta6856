@@ -1,0 +1,217 @@
+---
+title: "HW5"
+author: "Farooq Mahmud"
+format: pdf
+editor: source
+---
+
+## Problem 1
+
+
+```{r}
+library(forecast)
+library(TSA)
+library(ggplot2)
+data(robot)
+
+model_ar1 <- Arima(robot, order = c(1, 0, 0))
+model_arima011 <- Arima(robot, order = c(0, 1, 1))
+
+model_comparison <- data.frame(
+  Model = c("AR(1)", "ARIMA(0,1,1)"),
+  AIC = c(AIC(model_ar1), AIC(model_arima011)),
+  BIC = c(BIC(model_ar1), BIC(model_arima011))
+)
+
+print(model_comparison)
+
+checkresiduals(model_ar1)
+checkresiduals(model_arima011)
+```
+Based on lower AIC/BIC values and better residual diagnostics (especially the Ljung-Box test), ARIMA(0,1,1) is the preferred model.
+
+## Problem 2
+
+```{r}
+data(deere3)
+model_ar1 <- Arima(deere3, order = c(1, 0, 0))
+
+forecast_ar1 <- forecast::forecast(model_ar1, h = 10)
+
+autoplot(forecast_ar1) +
+  labs(
+    title = "Forecast from AR(1) Model for deere3"
+  ) +
+  theme_minimal()
+
+forecast_table <- as.data.frame(forecast_ar1)
+
+print(forecast_table)
+
+```
+
+The forecast quickly reverts toward zero (the series mean), consistent with the nature of AR(1) models. The wide prediction intervals indicate substantial uncertainty, which is expected due to the variability observed in the original series.
+
+## Problem 3a
+```{r}
+library(tseries)
+
+gdp <- read.csv("CAN_GDP.csv")
+int <- read.csv("CAN_INT.csv")
+cpi <- read.csv("CAN_CPI.csv")
+pro <- read.csv("CAN_PRO.csv")
+
+ts_gdp <- ts(gdp[, 7])
+ts_int <- ts(int[, 7])
+ts_cpi <- ts(cpi[, 7])
+ts_pro <- ts(pro[, 7])
+
+plot_acf_pacf <- function(ts_data, title) {
+  par(mfrow = c(1, 2))
+  acf(ts_data, main = paste("ACF of", title))
+  pacf(ts_data, main = paste("PACF of", title))
+  par(mfrow = c(1, 1))
+}
+
+plot_acf_pacf(ts_gdp, "GDP")
+plot_acf_pacf(ts_int, "Interest Rate")
+plot_acf_pacf(ts_cpi, "CPI")
+plot_acf_pacf(ts_pro, "Production")
+```
+
+### Stationarity Assessments
+
+- GDP
+  - The ACF shows a slow, exponential decay, typical of a non-stationary time series.
+  - The PACF cuts off sharply after lag 1, typical of an AR(1) process after differencing, suggesting the underlying data could be modeled as an ARIMA(1,1,0) process.
+  
+- Interest Rate
+  - Same assessment as GDP.
+
+- CPI
+  - ACF shows a large spike at lag 1, followed by quickly diminishing values which is a sign of stationarity.
+  - The PACF cuts off sharply after lag 1, typical of an AR(1) process but differencing may not be required.
+
+- Production
+  - Same assessment as GDP and Interest Rate.
+  
+## Problem 3b
+```{r}
+log_diff <- function(series) {
+  diff(log(series))
+}
+
+ts_gdp_diff <- log_diff(ts_gdp)
+ts_int_diff <- log_diff(ts_int)
+ts_pro_diff <- log_diff(ts_pro)
+
+plot_acf_pacf(ts_gdp_diff, "Log-Diff GDP")
+plot_acf_pacf(ts_int_diff, "Log-Diff Interest Rate")
+plot_acf_pacf(ts_pro_diff, "Log-Diff Production")
+```
+### Stationarity Assessments
+
+- GDP
+  - Only Lag 1 ACF is significant.
+  - In the PACF, only the first lag is significant.
+  - The transformed series appears stationary, possibly an AR(1) process.
+  
+- Interest Rate
+  - ACF and PACF plots show most autocorrelations are within the confidence bounds.
+  - The transformed series resembles white noise more closely.
+  
+- Production
+  - Transformed series appears stationary for the same reasons as GDP.
+  
+## Problem 3c
+
+```{r}
+library(vars)
+
+clean_ts <- function(ts_data) {
+  vec <- as.numeric(ts_data)
+  vec[!is.finite(vec)] <- NA
+  vec <- na.omit(vec)
+  ts(vec, start = start(ts_data), frequency = frequency(ts_data))
+}
+
+ts_cpi_diff <- log_diff(ts_cpi) 
+ts_cpi_diff <- clean_ts(ts_cpi_diff) # Differenced CPI has INF, -INF. This gets rid of them.
+
+combined_diff <- cbind(ts_gdp_diff, ts_int_diff, ts_cpi_diff, ts_pro_diff)
+combined_diff <- na.omit(combined_diff) # Remove NA's.
+
+VARselect(combined_diff)
+```
+Based on the above output, VAR(1) is the most appropriate.
+
+## Problem 3d
+
+```{r}
+var_model <- VAR(combined_diff, p = 1)
+summary(var_model)
+```
+## Problem 3e
+
+```{r}
+fit_ar_model <- function(ts_series, series_name) {
+  model <- arima(ts_series, order = c(1, 0, 0))
+  cat("\n===== AR(1) Model for", series_name, "=====\n")
+  print(summary(model))
+  return(model)
+}
+
+ar_gdp <- fit_ar_model(ts_gdp_diff, "GDP")
+ar_int <- fit_ar_model(ts_int_diff, "Interest Rate")
+ar_cpi <- fit_ar_model(ts_cpi_diff, "CPI")
+ar_pro <- fit_ar_model(ts_pro_diff, "Production")
+```
+## Problem 3f
+
+```{r}
+calculate_ar_mse <- function(models, data_list) {
+  ar_mse <- sapply(seq_along(models), function(i) {
+    resid <- residuals(models[[i]])
+    mean(resid^2, na.rm = TRUE)
+  })
+  avg_mse <- mean(ar_mse)
+  total_params <- length(models) * 2  # Each AR(1): 1 lag + 1 intercept
+  list(avg_mse = avg_mse, total_params = total_params)
+}
+
+calculate_var_mse <- function(var_model) {
+  resid <- residuals(var_model)
+
+  # Remove rows with any NA/Inf across variables
+  resid_clean <- resid[apply(resid, 1, function(row) all(is.finite(row))), ]
+
+  # MSE per series
+  mse_per_series <- colMeans(resid_clean^2, na.rm = TRUE)
+  avg_mse <- mean(mse_per_series)
+
+  k <- ncol(resid)  # Number of variables
+  p <- var_model$p  # VAR order
+  total_params <- k^2 * p + k  # per standard VAR(p) parameter count
+
+  list(avg_mse = avg_mse, total_params = total_params)
+}
+
+ar_models <- list(ar_gdp, ar_int, ar_cpi, ar_pro)
+ar_results <- calculate_ar_mse(ar_models, list(ts_gdp_diff, ts_int_diff, ts_cpi_diff, ts_pro_diff))
+var_results <- calculate_var_mse(var_model)
+
+table <- data.frame(
+  Model = c("AR(1)", sprintf("VAR(%d)", var_model$p)),
+  Avg_MSE = c(round(ar_results$avg_mse, 5), round(var_results$avg_mse, 5)),
+  Num_Parameters = c(ar_results$total_params, var_results$total_params)
+)
+
+print(table)
+```
+
+
+## Problem 5g
+
+Although the VAR(1) model has a slightly lower average MSE than the AR(1) models, the difference is small. The VAR(1) model uses more parameters than the AR(1) models which could lead to concerns about model complexity and overfitting.
+
+Therefore, AR(1) is recommended for parsimony unless inter-variable relationships are essential to capture.
